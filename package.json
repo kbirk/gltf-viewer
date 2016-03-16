@@ -1,0 +1,29 @@
+{
+  "name": "cerebus",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Kevin Birk <birk.kevin@gmail.com>",
+  "dependencies": {
+    "alfador": "0.5.0",
+    "async": "1.5.2",
+    "body-parser": "1.15.0",
+    "browserify": "13.0.0",
+    "compression": "1.6.1",
+    "del": "2.2.0",
+    "esper": "0.7.0",
+    "express": "4.13.4",
+    "gulp": "3.9.1",
+    "gulp-concat": "2.6.0",
+    "gulp-csso": "1.1.0",
+    "gulp-jshint": "1.11.2",
+    "gulp-nodemon": "2.0.6",
+    "jquery": "2.2.1",
+    "jshint-stylish": "2.1.0",
+    "lodash": "4.6.1",
+    "merge-stream": "1.0.0",
+    "run-sequence": "1.1.5",
+    "vinyl-buffer": "1.0.0",
+    "vinyl-source-stream": "1.1.0",
+    "watchify": "3.6.0"
+  }
+}
