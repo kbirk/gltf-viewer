@@ -13,7 +13,11 @@
         // only continue if WebGL is available
         if ( gl ) {
 
-            glTFLoader.load('./models/monster/monster.gltf', function( scene ) {
+            glTFLoader.load('./models/monster/monster.gltf', function( err, scene ) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
                 console.log(scene);
             });
 

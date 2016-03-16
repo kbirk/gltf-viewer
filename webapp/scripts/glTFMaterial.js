@@ -3,9 +3,7 @@
     'use strict';
 
     var _ = require('lodash');
-    var esper = require('esper');
     var glTFUtil = require('./glTFUtil');
-    var Material = require('./Material');
 
     var TEXTURE_FORMATS = {
         '6406': 'ALPHA',
@@ -16,7 +14,11 @@
         'default': 'RGBA'
     };
 
-    /*
+    var TEXTURE_TARGETS = {
+        '3553': 'TEXTURE_2D',
+        'default': 'TEXTURE_2D'
+    };
+
     var TEXTURE_INTERNAL_FORMATS = {
         '6406': 'ALPHA',
         '6407': 'RGB',
@@ -25,7 +27,6 @@
         '6410': 'LUMINANCE_ALPHA',
         'default': 'RGBA'
     };
-    */
 
     var TEXTURE_TYPES = {
         '5121': 'UNSIGNED_BYTE',
@@ -58,70 +59,6 @@
     };
 
     /**
-     * Set a property for the material based on its name. If there is no
-     * value, assign it a default color.
-     *
-     * @param {Object} material - The current material object.
-     * @param {String} parameterName - The material parameters name.
-     * @param {Object} technique - The glTF technique node.
-     * @param {Object} textures - The map of Texture2D objects.
-     */
-    function setMaterialAttribute( material, parameterName, technique, textures ) {
-        var parameter = technique.parameters[ parameterName ];
-        if ( parameter ) {
-            if ( TECHNIQUE_PARAMETER_TYPES[ parameter.type ] === 'SAMPLER_2D' ) {
-                // set texture
-                material[ parameterName + 'Texture' ] = textures[ parameter.value ];
-            } else if ( parameter.value ) {
-                // set color
-                material[ parameterName + 'Color' ] = parameter.value;
-            }
-        }
-    }
-
-    /**
-     * Instantiate a Material object from the instanceTechnique.
-     *
-     * @param {String} materialId - The materials unique id;
-     * @param {Object} instanceTechnique - The instanceTechnique object.
-     * @param {Object} textures - The map of Texture2D objects.
-     *
-     * @returns {Object} The instantiated Material object.
-     */
-    function createMaterial( materialId, technique, textures ) {
-        // TODO: pull in all properties
-        var material = {
-            id: materialId
-        };
-        // set ambient texture or color
-        setMaterialAttribute(
-            material,
-            'ambient',
-            technique,
-            textures
-        );
-        // set diffuse texture or color
-        setMaterialAttribute(
-            material,
-            'diffuse',
-            technique,
-            textures
-        );
-        // set specular texture or color
-        setMaterialAttribute(
-            material,
-            'specular',
-            technique,
-            textures
-        );
-        // set specular component
-        if ( technique.parameters.shininess ) {
-            material.specularComponent = technique.parameters.shininess.value;
-        }
-        return new Material( material );
-    }
-
-    /**
      * Instantiates and returns a map of all Material objects
      * defined in the glTF JSON.
      *
@@ -132,14 +69,16 @@
      * @returns {Object} The map of Material objects.
      */
     function createMaterials( materials, techniques, textures ) {
-        var results = {};
-        _.forIn( materials, function( material, id ) {
-            var techniqueId = material.technique;
-            var technique = techniques[ techniqueId ];
-            // connect texture image sources
-            results[ id ] = createMaterial( id, technique, textures );
+        _.forIn( materials, function( material ) {
+            var technique = techniques[ material.technique ];
+            _.forIn( material.values, function( value, id ) {
+                var param = technique.parameters[ id ];
+                if ( TECHNIQUE_PARAMETER_TYPES[ param.type ] === 'SAMPLER_2D' ) {
+                    material.values[ id ] = textures[ value ];
+                }
+            });
         });
-        return results;
+        return materials;
     }
 
     /**
@@ -156,12 +95,14 @@
         // for each texture
         _.forIn( textures, function( texture, id ) {
             // create Texture2D object from image
-            results[ id ] = new esper.Texture2D({
+            results[ id ] = {
                 image: images[ texture.source ],
                 format: TEXTURE_FORMATS[ texture.format ] || TEXTURE_FORMATS.default,
+                internalFormat: TEXTURE_INTERNAL_FORMATS[ texture.format ] || TEXTURE_INTERNAL_FORMATS.default,
                 type: TEXTURE_TYPES[ texture.type ] || TEXTURE_TYPES.default,
-                wrap: 'REPEAT'
-            });
+                target: TEXTURE_TARGETS[ texture.target ] || TEXTURE_TARGETS.default,
+                sampler: texture.sampler
+            };
         });
         return results;
     }

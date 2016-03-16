@@ -8,78 +8,67 @@
     //var glTFAnimation = require('./glTFAnimation');
     var glTFMesh = require('./glTFMesh');
     var glTFParser = require('./glTFParser');
-    var glTFSkeleton = require('./glTFSkeleton');
-    var Entity = require('./Entity');
+    var glTFSkin = require('./glTFSkin');
+    //var glTFSkeleton = require('./glTFSkeleton');
 
-    function createEntityRecursive( json, meshes, buffers, nodeId ) {
+    function assembleHierarchyRecursive( json, meshes, skins, nodeId ) {
         // get the node object
         var node = json.nodes[ nodeId ];
 
-        if ( node.jointName || node.camera || node.light ) {
+        if ( node.camera || node.light ) {
             // node is either a joint, camera, or light, so ignore it as an entity
             // TODO: process these
             return null;
         }
 
-        // get the nodes transform
-        var transform = glTFUtil.getNodeMatrix( node ).decompose();
+        // append the id
+        node.id = nodeId;
 
         // recursively assemble the skeleton joint tree
         var children = [];
         node.children.forEach( function( childId ) {
-            var child = createEntityRecursive( json, meshes, buffers, childId );
+            var child = assembleHierarchyRecursive( json, meshes, skins, childId );
             if ( child ) {
                 children.push( child );
             }
         });
+        // replace children
+        node.children = children;
 
         // if node has a mesh, add the renderables
-        // TODO: deal with renderabels later
-        // var renderables = [];
-        // if ( node.meshes ) {
-        //     node.meshes.forEach( function( meshId ) {
-        //         renderables = renderables.concat( meshes[ meshId ] );
-        //     });
-        // }
-
-        // if node has skin, process skeleton
-        var skeleton;
-        //var animations;
-        if ( node.skin ) {
-            skeleton = glTFSkeleton.createSkeleton( json, node, buffers );
-            // TODO: animations
-            // var animations = glTFAnimation.createAnimations( json, buffers );
-            // TODO: is this deprecated?
-            // for ( i=0; i<node.skin.meshes.length; i++ ) {
-            //     renderables = renderables.concat( meshes[ node.skin.meshes[i] ] );
-            // }
+        // TODO: refactor this (extra 's' on meshes)
+        if ( node.meshes ) {
+            var meshess = [];
+            node.meshes.forEach( function( meshId ) {
+                meshess = meshess.concat( meshes[ meshId ] );
+            });
+            node.meshes = meshess;
         }
 
-        var entity = new Entity({
-            id: nodeId,
-            up: transform.up,
-            forward: transform.forward,
-            left: transform.left,
-            origin: transform.origin,
-            scale: transform.scale,
-            children: children
-        });
-        // TODO: add this in a better way
-        entity.skeleton = skeleton;
-        return entity;
+        // if node has skin, process skeleton
+        //var animations;
+        if ( node.skin ) {
+            // append skeleton
+            node.skin = skins[ node.skin ];
+        }
+
+        // TODO: animations
+        // var animations = glTFAnimation.createAnimations( json, buffers );
+
+        return node;
     }
 
-    function createEntity( json, meshes, buffers ) {
-        var rootNodes = json.scenes[ json.scene ].nodes;
-        var entities = [];
+    function assembleHierarchy( json, meshes, skins ) {
+        var roots = json.scenes[ json.scene ].nodes;
+        var nodes = [];
         // for each node
-        rootNodes.forEach( function( node ) {
-            var entity = createEntityRecursive( json, meshes, buffers, node );
-            if ( entity ) {
-                entities.push( entity );
+        roots.forEach( function( node ) {
+            var result = assembleHierarchyRecursive( json, meshes, skins, node );
+            if ( result ) {
+                nodes.push( result );
             }
         });
-        return entities;
+        return nodes;
     }
 
     function loadEntity( json, callback ) {
@@ -100,37 +89,106 @@
             var buffers = res.buffers;
             var materials = res.materials;
             // create meshes, then entities
-            var meshes = glTFMesh.createMeshes( json, buffers, materials );
-            var entity = createEntity( json, meshes, buffers );
-            callback( null, entity );
+            var skins = glTFSkin.loadSkins( json, buffers );
+            var meshes = glTFMesh.loadMeshes( json, buffers, materials );
+            var hierarchy = assembleHierarchy( json, meshes, skins );
+            callback( null, hierarchy );
         });
     }
+
+    // function loadGLTF( url, done ) {
+    //
+    // }
 
     module.exports = {
 
         load: function( url, callback ) {
-            var scene = new Entity();
-            var parser = Object.create( glTFParser, {
-                handleLoadCompleted: {
-                    value: function() {
-                        // load the entity
-                        loadEntity( this.json, function( err, entities ) {
-                            if ( err ) {
-                                console.error( err );
-                                callback( null );
-                                return;
-                            }
-                            entities.forEach( function( entity ) {
-                                scene.addChild( entity );
-                            });
-                            callback( scene );
+
+            glTFParser.load( url, {
+                buffers: function(id, description) {
+                    console.log('buffer', id);
+                    console.log(description);
+                },
+                bufferViews: function(id, description) {
+                    console.log('bufferView',id);
+                    console.log(description);
+                },
+                shaders: function(id, description) {
+                    console.log('shader',id);
+                    console.log(description);
+                },
+                programs: function(id, description) {
+                    console.log('program',id);
+                    console.log(description);
+                },
+                techniques: function(id, description) {
+                    console.log('technique',id);
+                    console.log(description);
+                },
+                materials: function(id, description) {
+                    console.log('material',id);
+                    console.log(description);
+                },
+                meshs: function(id, description) {
+                    console.log('mesh',id);
+                    console.log(description);
+                },
+                cameras: function(id, description) {
+                    console.log('camera',id);
+                    console.log(description);
+                },
+                lights: function(id, description) {
+                    console.log('light',id);
+                    console.log(description);
+                },
+                nodes: function(id, description) {
+                    console.log('node',id);
+                    console.log(description);
+                },
+                scenes: function(id, description) {
+                    console.log('scene',id);
+                    console.log(description);
+                },
+                images: function(id, description) {
+                    console.log('image',id);
+                    console.log(description);
+                },
+                animations: function(id, description) {
+                    //console.log('animation',id);
+                    //console.log(description);
+                },
+                accessors: function(id, description) {
+                    console.log('accessor',id);
+                    console.log(description);
+                },
+                skins: function(id, description) {
+                    console.log('skin',id);
+                    console.log(description);
+                },
+                samplers: function(id, description) {
+                    console.log('sampler',id);
+                    console.log(description);
+                },
+                textures: function(id, description) {
+                    console.log('texture',id);
+                    console.log(description);
+                },
+                success: function(json) {
+                    // load the entity
+                    loadEntity( json, function( err, nodes ) {
+                        if ( err ) {
+                            callback( err );
+                            return;
+                        }
+                        callback( null, {
+                            children: nodes
                         });
-                    }
+                    });
+                },
+                error: function(err) {
+                    callback( err );
                 }
             });
-            parser.initWithPath( url );
-            parser.load( null, null );
-            return scene;
         }
 
     };

@@ -14,7 +14,7 @@
     var merge = require('merge-stream');
     var nodemon = require('gulp-nodemon');
 
-    var project = 'cerebus';
+    var project = 'cerberus';
     var basePath = 'webapp/';
     var paths = {
         root: basePath + 'app.js',
