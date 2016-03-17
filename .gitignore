@@ -1,8 +1,5 @@
 .DS_Store
-TODO.txt
 node_modules
 coverage
-webapp/vendor
-webapp/sprites
 build
 npm-debug.log
