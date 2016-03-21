@@ -10,7 +10,7 @@
         '5126': 'FLOAT'
     };
 
-    var TYPES_TO_NUM_COMPONENTS = {
+    var NUM_COMPONENTS = {
         'SCALAR': 1,
         'VEC2': 2,
         'VEC3': 3,
@@ -23,7 +23,7 @@
     module.exports = function( gltf, description, done ) {
         description.bufferView = gltf.bufferViews[ description.bufferView ];
         description.componentType = COMPONENT_TYPES[ description.componentType ];
-        description.size = TYPES_TO_NUM_COMPONENTS[ description.type ];
+        description.size = NUM_COMPONENTS[ description.type ];
         done( null );
     };
 

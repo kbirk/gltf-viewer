@@ -9,7 +9,7 @@
             url: description.uri,
             responseType: 'arraybuffer',
             success: function( image ) {
-                description.source = image;
+                description.image = image;
                 done( null );
             },
             error: function( err ) {

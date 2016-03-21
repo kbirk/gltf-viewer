@@ -8,8 +8,13 @@
     };
 
     module.exports = function( gltf, description, done ) {
-        description.buffer = gltf.buffers[ description.buffer ];
-        description.target = TARGETS[ description.target ];
+        var buffer = gltf.buffers[ description.buffer ];
+        var source = buffer.source.slice( description.byteOffset, description.byteOffset + description.byteLength );
+        description.buffer = buffer;
+        description.source = source;
+        if ( description.buffer ) {
+            description.target = TARGETS[ description.target ];
+        }
         done( null );
     };
 
