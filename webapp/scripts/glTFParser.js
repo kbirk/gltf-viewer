@@ -108,7 +108,7 @@
                     });
                 }
             });
-            console.log('Loading dependency group', categoryIds);
+            console.log('Loading dependency group', JSON.stringify(categoryIds));
             // execute all categories within the same dependency level
             // in parallel
             async.parallel( tasks, done );
@@ -144,6 +144,10 @@
                 json = resolvePathsForCategories(json, baseURL);
                 parseJSON(json, handlers);
             });
+        },
+
+        parse: function(json, handlers) {
+            parseJSON(json, handlers);
         }
 
     };
