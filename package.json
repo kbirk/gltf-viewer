@@ -10,7 +10,7 @@
     "browserify": "13.0.0",
     "compression": "1.6.1",
     "del": "2.2.0",
-    "esper": "0.7.0",
+    "esper": "0.8.0",
     "express": "4.13.4",
     "gulp": "3.9.1",
     "gulp-concat": "2.6.0",

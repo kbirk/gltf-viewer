@@ -207,6 +207,7 @@
 
         var lastPos;
         var down;
+        var distance = 10;
         window.onmousedown = function( event ) {
             lastPos = {
                 x: event.screenX,
@@ -227,10 +228,19 @@
                 camera.origin = new alfador.Vec3( 0, 0, 0 );
                 camera.rotateWorldDegrees( delta.x * -0.2, [ 0, 1, 0 ] );
                 camera.rotateLocalDegrees( delta.y * 0.1, [ 1, 0, 0 ] );
-                camera.translateLocal([ 0, 0, -10 ]);
+                camera.translateLocal([ 0, 0, -distance ]);
                 lastPos = pos;
             }
         };
+        window.onwheel = function( event ) {
+            var SCROLL_FACTOR = 100;
+            var MIN = 2;
+            var MAX = 20;
+            distance += ( event.deltaY / SCROLL_FACTOR );
+            distance = Math.min( Math.max( distance, MIN ), MAX )
+            camera.origin = new alfador.Vec3( 0, 0, 0 );
+            camera.translateLocal([ 0, 0, -distance ]);
+        }
         window.onmouseup = function() {
             down = false;
         };

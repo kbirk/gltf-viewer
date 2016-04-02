@@ -23,11 +23,6 @@
         'MAT4': 16
     };
 
-    /*
-
-    Is there a reason why componentType is not
-    */
-
     module.exports = {
 
         construct: function( gltf, callback ) {
@@ -36,7 +31,7 @@
 
             glTFParser.parse( gltf, {
                 bufferViews: function( gltf, description, done ) {
-                    if (description.target) {
+                    if ( description.target ) {
                         description.instance = gl.createBuffer();
                         gl.bindBuffer( gl[description.target], description.instance );
                         gl.bufferData( gl[description.target], description.source, gl.STATIC_DRAW );
@@ -100,7 +95,10 @@
                             };
                             return new esper.VertexBuffer(
                                 pointer.bufferView.instance,
-                                pointers );
+                                pointers,
+                                {
+                                    byteLength: pointer.bufferView.byteLength
+                                });
                         });
                         // create index buffer
                         var indexBuffer = new esper.IndexBuffer(
@@ -109,7 +107,8 @@
                                 type: primitive.indices.componentType,
                                 count: primitive.indices.count,
                                 mode: primitive.mode,
-                                offset: primitive.indices.byteOffset
+                                offset: primitive.indices.byteOffset,
+                                byteLength: primitive.indices.bufferView.byteLength
                             });
                         primitive.instance = new esper.Renderable({
                             vertexBuffers: vertexBuffers,
