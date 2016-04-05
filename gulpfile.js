@@ -58,8 +58,9 @@
             .pipe( gulp.dest( paths.build ) );
     }
 
-    gulp.task('clean', function () {
+    gulp.task('clean', function( done ) {
         del.sync( paths.build );
+        done();
     });
 
     gulp.task('lint', function() {

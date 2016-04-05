@@ -159,25 +159,21 @@
         }
     }
 
-    module.exports = {
-
-        createAnimations: function( json, buffers ) {
-            var animationsByTarget = {},
-                parametersByAccessor = {},
-                key;
-            for ( key in json.animations ) {
-                if ( json.animations.hasOwnProperty( key ) ) {
-                    createAnimation(
-                        animationsByTarget,
-                        parametersByAccessor,
-                        json,
-                        json.animations[ key ],
-                        buffers );
-                }
+    module.exports = function( json, buffers ) {
+        var animationsByTarget = {},
+            parametersByAccessor = {},
+            key;
+        for ( key in json.animations ) {
+            if ( json.animations.hasOwnProperty( key ) ) {
+                createAnimation(
+                    animationsByTarget,
+                    parametersByAccessor,
+                    json,
+                    json.animations[ key ],
+                    buffers );
             }
-            return animationsByTarget;
         }
-
+        return animationsByTarget;
     };
 
 }());

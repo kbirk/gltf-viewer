@@ -8,6 +8,7 @@ body {
     left: 0;
     right: 0;
     background-color: #222222;
+    overflow: hidden;
 }
 
 canvas {

@@ -91,7 +91,7 @@
                             pointers[ index ] = {
                                 type: pointer.componentType,
                                 size: pointer.size,
-                                offset: pointer.byteOffset
+                                byteOffset: pointer.byteOffset
                             };
                             return new esper.VertexBuffer(
                                 pointer.bufferView.instance,
@@ -101,14 +101,15 @@
                                 });
                         });
                         // create index buffer
+                        var indices = primitive.indices;
                         var indexBuffer = new esper.IndexBuffer(
-                            primitive.indices.bufferView.instance,
+                            indices.bufferView.instance,
                             {
-                                type: primitive.indices.componentType,
-                                count: primitive.indices.count,
+                                type: indices.componentType,
+                                count: indices.count,
                                 mode: primitive.mode,
-                                offset: primitive.indices.byteOffset,
-                                byteLength: primitive.indices.bufferView.byteLength
+                                byteOffset: indices.byteOffset,
+                                byteLength: indices.bufferView.byteLength
                             });
                         primitive.instance = new esper.Renderable({
                             vertexBuffers: vertexBuffers,
