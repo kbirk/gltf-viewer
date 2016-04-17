@@ -4,7 +4,7 @@
 
     var glTFParser = require('./glTFParser');
     var glTFAccessor = require('./categories/glTFAccessor');
-    //var glTFAnimation = require('../categories/glTFMaterial');
+    var glTFAnimation = require('./categories/glTFAnimation');
     var glTFBuffer = require('./categories/glTFBuffer');
     var glTFBufferView = require('./categories/glTFBufferView');
     var glTFCamera = require('./categories/glTFCamera');
@@ -38,7 +38,7 @@
                 meshes: glTFMesh,
                 nodes: glTFNode,
                 techniques: glTFTechnique,
-                // animations: glTFAnimation,
+                animations: glTFAnimation,
                 materials: glTFMaterial,
                 scenes: glTFScene,
                 success: function( gltf ) {

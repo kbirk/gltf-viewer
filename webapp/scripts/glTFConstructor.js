@@ -23,6 +23,16 @@
         'MAT4': 16
     };
 
+    function getArrayBufferView( accessor ) {
+        var bufferView = accessor.bufferView;
+        var numComponents = NUM_COMPONENTS[ accessor.type ];
+        var TypedArray = COMPONENT_TYPES[ accessor.componentType ];
+        return new TypedArray(
+            bufferView.source,
+            accessor.byteOffset,
+            accessor.count * numComponents );
+    }
+
     module.exports = {
 
         construct: function( gltf, callback ) {
@@ -57,16 +67,44 @@
                     });
                     done( null );
                 },
+                animations: function( gltf, description, done ) {
+                    var parameters = description.parameters;
+                    Object.keys( parameters ).forEach( function( key ) {
+                        var accessor = parameters[ key ];
+                        var numComponents = NUM_COMPONENTS[ accessor.type ];
+                        var arraybuffer = getArrayBufferView( accessor );
+                        var values = [];
+                        var i;
+                        for ( i=0; i<accessor.count*numComponents; i+=numComponents ) {
+                            // get the subarray that composes the matrix
+                            var sub = arraybuffer.subarray( i, i + numComponents );
+                            values.push( ( sub.length === 1 ) ? sub[0] : sub );
+                        }
+                        parameters[ key ] = values;
+                    });
+
+                    description.channels.forEach( function( channel ) {
+                        var target = channel.target;
+                        // get the node for the channel
+                        var node = gltf.nodes[ target.id ];
+                        node.animations = node.animations || {};
+                        var key = description.name || 'untitled';
+                        node.animations[ key ] = node.animations[ key ] || {};
+                        // add sampler info under the animation path
+                        var sampler = channel.sampler;
+                        node.animations[ key ][ target.path ] = {
+                            input: parameters[ sampler.input ],
+                            values: parameters[ target.path ],
+                            interpolation: sampler.interpolation
+                        };
+                    });
+
+                    done( null );
+                },
                 skins: function( gltf, description, done ) {
                     var accessor = description.inverseBindMatrices;
-                    var bufferView = accessor.bufferView;
                     var numComponents = NUM_COMPONENTS[ accessor.type ];
-                    var TypedArray = COMPONENT_TYPES[ accessor.componentType ];
-                    // extract inverse binds from accessor
-                    var arraybuffer = new TypedArray(
-                        bufferView.source,
-                        accessor.byteOffset,
-                        accessor.count * numComponents );
+                    var arraybuffer = getArrayBufferView( accessor );
                     var inverseBindMatrices = [];
                     var i;
                     for ( i=0; i<accessor.count*numComponents; i+=numComponents ) {

@@ -19,13 +19,78 @@
     var line;
     var shapes;
 
-    function computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, parentMatrix, joint ) {
-        var transform = new alfador.Transform({
+    var start = Date.now();
+    var time;
+
+    function findKeyFrame( time, frames ) {
+        var len = frames.length;
+        var last = frames[ len - 1 ];
+        var mod = time % last;
+        var i = 0;
+        while ( frames[ (i+1) % len ] < mod ) {
+            i++;
+        }
+        var j = (i+1) % len;
+        var t0 = frames[ i ];
+        var t1 = frames[ j ];
+        var range = ( t1 - t0 );
+        return {
+            from: i,
+            to: j,
+            t: ( ( mod - t0 ) / range )
+        };
+    }
+
+    function interpolateQuat( time, channel ) {
+        var frames = findKeyFrame( time, channel.input );
+        var a = channel.values[ frames.from ];
+        var b = channel.values[ frames.to ];
+        return alfador.Quaternion.slerp(
+            [ a[3], a[0], a[1], a[2] ],
+            [ b[3], b[0], b[1], b[2] ],
+            frames.t );
+    }
+
+    function interpolateVec3( time, channel ) {
+        var frames = findKeyFrame( time, channel.input );
+        var a = channel.values[ frames.from ];
+        var b = channel.values[ frames.to ];
+        var t = frames.t;
+        var mt = 1 - t;
+        return [
+            ( ( a[0] * mt ) + ( b[0] * t ) ),
+            ( ( a[1] * mt ) + ( b[1] * t ) ),
+            ( ( a[2] * mt ) + ( b[2] * t ) )
+        ];
+    }
+
+    function getAnimationPose( joint, time ) {
+        var animation = joint.animations[ Object.keys( joint.animations )[0] ];
+        var rotation = interpolateQuat( time, animation.rotation );
+        var scale = interpolateVec3( time, animation.scale );
+        var translation = interpolateVec3( time, animation.translation );
+        return new alfador.Transform({
+            scale: scale,
+            translation: translation,
+            rotation: rotation
+        }).matrix();
+    }
+
+    function getBindPose( joint ) {
+        return new alfador.Transform({
             scale: joint.scale,
             translation: joint.translation,
             rotation: [ joint.rotation[3], joint.rotation[0], joint.rotation[1], joint.rotation[2] ]
-        });
-        var matrix = transform.matrix();
+        }).matrix();
+    }
+
+    function computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, parentMatrix, joint ) {
+        var matrix;
+        if ( joint.animations ) {
+            matrix = getAnimationPose( joint, time );
+        } else {
+            matrix = getBindPose( joint );
+        }
         var inverse = new alfador.Mat44( Array.prototype.slice.call( inverseBinds[ joint.jointIndex ] ) );
         var globalMatrix;
         if ( parentMatrix ) {
@@ -247,6 +312,9 @@
     }
 
     function render() {
+
+        time = ( Date.now() - start ) / 1000;
+
         // render scene
         scene.nodes.forEach( function( node ) {
             renderHierarchy( node );
@@ -431,7 +499,7 @@
                 cube
             ];
 
-            glTFLoader.load('./models/rigged-figure/rigged-figure.gltf', function( err, gltf ) {
+            glTFLoader.load('./models/Cesium_Man/Cesium_Man.gltf', function( err, gltf ) {
                 if ( err ) {
                     console.error( err );
                     return;

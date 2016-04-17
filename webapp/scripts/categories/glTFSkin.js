@@ -3,7 +3,7 @@
     'use strict';
 
     function getNodeByJointName( nodes, jointName ) {
-        var keys  = Object.keys( nodes );
+        var keys = Object.keys( nodes );
         var node;
         var i;
         for ( i=0; i<keys.length; i++ ) {
