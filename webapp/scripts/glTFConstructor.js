@@ -62,6 +62,7 @@
                     var bufferView = accessor.bufferView;
                     var numComponents = NUM_COMPONENTS[ accessor.type ];
                     var TypedArray = COMPONENT_TYPES[ accessor.componentType ];
+                    // extract inverse binds from accessor
                     var arraybuffer = new TypedArray(
                         bufferView.source,
                         accessor.byteOffset,

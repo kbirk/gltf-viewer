@@ -19,7 +19,53 @@
     var line;
     var shapes;
 
-    function renderPrimitive( matrix, primitive ) {
+    function computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, parentMatrix, joint ) {
+        var transform = new alfador.Transform({
+            scale: joint.scale,
+            translation: joint.translation,
+            rotation: [ joint.rotation[3], joint.rotation[0], joint.rotation[1], joint.rotation[2] ]
+        });
+        var matrix = transform.matrix();
+        var inverse = new alfador.Mat44( Array.prototype.slice.call( inverseBinds[ joint.jointIndex ] ) );
+        var globalMatrix;
+        if ( parentMatrix ) {
+            globalMatrix = parentMatrix.multMat44( matrix );
+        } else {
+            globalMatrix = matrix;
+        }
+        matrices[ joint.jointIndex ] = globalMatrix.multMat44( inverse.multMat44( bindShapeMatrix ) ).toArray();
+        joint.children.forEach( function( child ) {
+            computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, globalMatrix, child );
+        });
+    }
+
+    function getJointArray( skin ) {
+        var matrices = new Array( skin.joints.length );
+        computeJointMatrices( matrices, skin.bindShapeMatrix, skin.inverseBindMatrices, null, skin.joints[0] );
+        var arr = new Float32Array( skin.joints.length * 16 );
+        matrices.forEach( function( mat, index ) {
+            var j = index * 16;
+            arr[ j ] = mat[0];
+            arr[ j + 1 ] = mat[1];
+            arr[ j + 2 ] = mat[2];
+            arr[ j + 3 ] = mat[3];
+            arr[ j + 4 ] = mat[4];
+            arr[ j + 5 ] = mat[5];
+            arr[ j + 6 ] = mat[6];
+            arr[ j + 7 ] = mat[7];
+            arr[ j + 8 ] = mat[8];
+            arr[ j + 9 ] = mat[9];
+            arr[ j + 10 ] = mat[10];
+            arr[ j + 11 ] = mat[11];
+            arr[ j + 12 ] = mat[12];
+            arr[ j + 13 ] = mat[13];
+            arr[ j + 14 ] = mat[14];
+            arr[ j + 15 ] = mat[15];
+        });
+        return arr;
+    }
+
+    function renderPrimitive( node, matrix, primitive ) {
         var material = primitive.material;
         var technique = material.technique;
         var shader = technique.program.instance;
@@ -94,6 +140,7 @@
                     shader.setUniform( uniform, new alfador.Mat44( view ).toMat33().multMat33( new alfador.Mat44( model ).toMat33().inverse().transpose() ) );
                     break;
                 case 'JOINTMATRIX':
+                    shader.setUniform( uniform, getJointArray( node.skin ) );
                     break;
                 default:
                     // attribute semantic
@@ -138,7 +185,7 @@
             node.meshes.forEach( function( mesh ) {
                 mesh.primitives.forEach( function( primitive ) {
                     // draw
-                    renderPrimitive( matrix, primitive );
+                    renderPrimitive( node, matrix, primitive );
                 });
             });
         }
@@ -217,6 +264,19 @@
     	requestAnimationFrame( render );
     }
 
+    var bounds = {
+        min: {
+            x: 0,
+            y: 0,
+            z: 0
+        },
+        max: {
+            x: 0,
+            y: 0,
+            z: 0
+        }
+    };
+
     function firstPass( node ) {
         if ( node.camera ) {
             camera = new alfador.Transform( new alfador.Mat44( node.matrix ) );
@@ -236,6 +296,20 @@
             //         proj.znear, proj.zfar );
             // }
         }
+        if ( node.meshes ) {
+            node.meshes.forEach( function( mesh ) {
+                mesh.primitives.forEach( function( primitive ) {
+                    // min
+                    bounds.min.x = Math.min( bounds.min.x, primitive.attributes.POSITION.min[0] );
+                    bounds.min.y = Math.min( bounds.min.y, primitive.attributes.POSITION.min[1] );
+                    bounds.min.z = Math.min( bounds.min.z, primitive.attributes.POSITION.min[2] );
+                    // max
+                    bounds.max.x = Math.max( bounds.max.x, primitive.attributes.POSITION.max[0] );
+                    bounds.max.y = Math.max( bounds.max.y, primitive.attributes.POSITION.max[1] );
+                    bounds.max.z = Math.max( bounds.max.z, primitive.attributes.POSITION.max[2] );
+                });
+            });
+        }
         node.children.forEach( function( child ) {
             firstPass( child );
         });
@@ -244,15 +318,20 @@
     function initCameraControls() {
 
         if ( !camera ) {
+            var diff = new alfador.Vec3([
+                bounds.max.x - bounds.min.x,
+                bounds.max.y - bounds.min.y,
+                bounds.max.z - bounds.min.z
+            ]).length();
             camera = new alfador.Transform({
-                translation: [ 0, 0, -10 ]
+                translation: [ 0, 0, diff * 2 ]
             });
         }
 
         var lastPos;
         var down;
         var distance = camera.translation.length();
-        var MAX_DISTANCE = distance * 2;
+        var MAX_DISTANCE = distance * 10;
         var MIN_DISTANCE = distance / 10;
 
         window.onmousedown = function( event ) {
@@ -352,7 +431,7 @@
                 cube
             ];
 
-            glTFLoader.load('./models/duck/duck.gltf', function( err, gltf ) {
+            glTFLoader.load('./models/rigged-figure/rigged-figure.gltf', function( err, gltf ) {
                 if ( err ) {
                     console.error( err );
                     return;
