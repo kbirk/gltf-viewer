@@ -3,21 +3,26 @@
     'use strict';
 
     var _ = require('lodash');
+    var glm = require('gl-matrix');
     var esper = require('esper');
-    var geometry = require('esper-geometry');
-    var alfador = require('alfador');
+    //var geometry = require('esper-geometry');
     var glTFLoader = require('./scripts/glTFLoader');
     var glTFConstructor = require('./scripts/glTFConstructor');
+
+    var FOV = 60 * ( Math.PI / 180 );
+    var ASPECT_RATIO = function() { return window.innerWidth / window.innerHeight; };
+    var NEAR = 0.1;
+    var FAR = 10000;
 
     var gl;
     var viewport;
     var scene;
     var camera;
-    var projection;
+    var view = glm.mat4.create();
+    var projection = glm.mat4.create();
     var flat;
-    var cube;
+    //var sphere;
     var line;
-    var shapes;
 
     var start = Date.now();
     var time;
@@ -45,23 +50,14 @@
         var frames = findKeyFrame( time, channel.input );
         var a = channel.values[ frames.from ];
         var b = channel.values[ frames.to ];
-        return alfador.Quaternion.slerp(
-            [ a[3], a[0], a[1], a[2] ],
-            [ b[3], b[0], b[1], b[2] ],
-            frames.t );
+        return glm.quat.slerp( glm.quat.create(), a, b, frames.t );
     }
 
     function interpolateVec3( time, channel ) {
         var frames = findKeyFrame( time, channel.input );
         var a = channel.values[ frames.from ];
         var b = channel.values[ frames.to ];
-        var t = frames.t;
-        var mt = 1 - t;
-        return [
-            ( ( a[0] * mt ) + ( b[0] * t ) ),
-            ( ( a[1] * mt ) + ( b[1] * t ) ),
-            ( ( a[2] * mt ) + ( b[2] * t ) )
-        ];
+        return glm.vec3.lerp( glm.vec3.create(), a, b, frames.t );
     }
 
     function getAnimationPose( joint, time ) {
@@ -69,19 +65,31 @@
         var rotation = interpolateQuat( time, animation.rotation );
         var scale = interpolateVec3( time, animation.scale );
         var translation = interpolateVec3( time, animation.translation );
-        return new alfador.Transform({
-            scale: scale,
-            translation: translation,
-            rotation: rotation
-        }).matrix();
+        return glm.mat4.fromRotationTranslationScale( glm.mat4.create(), rotation, translation, scale );
     }
 
     function getBindPose( joint ) {
-        return new alfador.Transform({
-            scale: joint.scale,
-            translation: joint.translation,
-            rotation: [ joint.rotation[3], joint.rotation[0], joint.rotation[1], joint.rotation[2] ]
-        }).matrix();
+        return glm.mat4.fromRotationTranslationScale( glm.mat4.create(), joint.rotation, joint.translation, joint.scale );
+    }
+
+    function copyJointMatrix( matrices, matrix, index ) {
+        var j = index * 16;
+        matrices[ j ] = matrix[0];
+        matrices[ j + 1 ] = matrix[1];
+        matrices[ j + 2 ] = matrix[2];
+        matrices[ j + 3 ] = matrix[3];
+        matrices[ j + 4 ] = matrix[4];
+        matrices[ j + 5 ] = matrix[5];
+        matrices[ j + 6 ] = matrix[6];
+        matrices[ j + 7 ] = matrix[7];
+        matrices[ j + 8 ] = matrix[8];
+        matrices[ j + 9 ] = matrix[9];
+        matrices[ j + 10 ] = matrix[10];
+        matrices[ j + 11 ] = matrix[11];
+        matrices[ j + 12 ] = matrix[12];
+        matrices[ j + 13 ] = matrix[13];
+        matrices[ j + 14 ] = matrix[14];
+        matrices[ j + 15 ] = matrix[15];
     }
 
     function computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, parentMatrix, joint ) {
@@ -91,43 +99,50 @@
         } else {
             matrix = getBindPose( joint );
         }
-        var inverse = new alfador.Mat44( Array.prototype.slice.call( inverseBinds[ joint.jointIndex ] ) );
+        var inverse = inverseBinds[ joint.jointIndex ];
         var globalMatrix;
         if ( parentMatrix ) {
-            globalMatrix = parentMatrix.multMat44( matrix );
+            globalMatrix = glm.mat4.multiply( glm.mat4.create(), parentMatrix, matrix );
         } else {
             globalMatrix = matrix;
         }
-        matrices[ joint.jointIndex ] = globalMatrix.multMat44( inverse.multMat44( bindShapeMatrix ) ).toArray();
+        var jointMatrix = glm.mat4.multiply( glm.mat4.create(), inverse, bindShapeMatrix );
+        jointMatrix = glm.mat4.multiply( jointMatrix, globalMatrix, jointMatrix );
+        copyJointMatrix( matrices, jointMatrix, joint.jointIndex );
         joint.children.forEach( function( child ) {
             computeJointMatrices( matrices, bindShapeMatrix, inverseBinds, globalMatrix, child );
         });
     }
 
     function getJointArray( skin ) {
-        var matrices = new Array( skin.joints.length );
+        var matrices = new Float32Array( skin.joints.length * 16 );
         computeJointMatrices( matrices, skin.bindShapeMatrix, skin.inverseBindMatrices, null, skin.joints[0] );
-        var arr = new Float32Array( skin.joints.length * 16 );
-        matrices.forEach( function( mat, index ) {
-            var j = index * 16;
-            arr[ j ] = mat[0];
-            arr[ j + 1 ] = mat[1];
-            arr[ j + 2 ] = mat[2];
-            arr[ j + 3 ] = mat[3];
-            arr[ j + 4 ] = mat[4];
-            arr[ j + 5 ] = mat[5];
-            arr[ j + 6 ] = mat[6];
-            arr[ j + 7 ] = mat[7];
-            arr[ j + 8 ] = mat[8];
-            arr[ j + 9 ] = mat[9];
-            arr[ j + 10 ] = mat[10];
-            arr[ j + 11 ] = mat[11];
-            arr[ j + 12 ] = mat[12];
-            arr[ j + 13 ] = mat[13];
-            arr[ j + 14 ] = mat[14];
-            arr[ j + 15 ] = mat[15];
-        });
-        return arr;
+        return matrices;
+    }
+
+    function mult() {
+        var i;
+        var out = glm.mat4.create();
+        for ( i=0; i<arguments.length-1; i++ ) {
+            out = glm.mat4.multiply( out, arguments[i], arguments[i+1] );
+        }
+        return out;
+    }
+
+    function invert( mat ) {
+        return glm.mat4.invert( glm.mat4.create(), mat );
+    }
+
+    function transposeInverse( mat ) {
+        var out = glm.mat3.fromMat4( glm.mat4.create(), mat );
+        glm.mat3.invert( out, mat );
+        return glm.mat3.transpose( out, out );
+    }
+
+    function multInverseTranspose( view, model ) {
+        var out = glm.mat3.create();
+        var view3 = glm.mat3.fromMat4( out, view );
+        return glm.mat3.multiply( out, view3, transposeInverse( model ) );
     }
 
     function renderPrimitive( node, matrix, primitive ) {
@@ -160,56 +175,55 @@
                     shader.setUniform( uniform, model );
                     break;
                 case 'VIEW':
-                    //console.log('set', uniform, camera.viewMatrix() );
-                    shader.setUniform( uniform, camera.viewMatrix() );
+                    //console.log('set', uniform, view );
+                    shader.setUniform( uniform, view );
                     break;
                 case 'PROJECTION':
                     //console.log('set', uniform, projection );
                     shader.setUniform( uniform, projection );
                     break;
                 case 'MODELVIEW':
-                    //console.log('set', uniform, camera.viewMatrix().multMat44( model ) );
-                    shader.setUniform( uniform, camera.viewMatrix().multMat44( model ) );
+                    //console.log('set', uniform, mult( view, model ) );
+                    shader.setUniform( uniform, mult( view, model ) );
                     break;
                 case 'MODELVIEWPROJECTION':
-                    //console.log('set', uniform, projection.multMat44( camera.viewMatrix() ).multMat44( model ) );
-                    shader.setUniform( uniform, projection.multMat44( camera.viewMatrix() ).multMat44( model ) );
+                    //console.log('set', uniform, mult( projection, view, model ) );
+                    shader.setUniform( uniform, mult( projection, view, model ) );
                     break;
                 case 'MODELINVERSE':
-                    //console.log('set', uniform, new alfador.Mat44( model ).inverse() );
-                    shader.setUniform( uniform, new alfador.Mat44( model ).inverse() );
+                    //console.log('set', uniform, invert( model ) );
+                    shader.setUniform( uniform, invert( model ) );
                     break;
                 case 'VIEWINVERSE':
-                    //console.log('set', uniform, camera.viewMatrix().inverse() );
-                    shader.setUniform( uniform, camera.viewMatrix().inverse() );
+                    //console.log('set', uniform, invert( view ) );
+                    shader.setUniform( uniform, invert( view ) );
                     break;
                 case 'PROJECTIONINVERSE':
-                    //console.log('set', uniform, projection.inverse() );
-                    shader.setUniform( uniform, projection.inverse() );
+                    //console.log('set', uniform, invert( projection ) );
+                    shader.setUniform( uniform, invert( projection ) );
                     break;
                 case 'MODELVIEWINVERSE':
-                    //console.log('set', uniform, camera.viewMatrix().multMat44( model ).inverse() );
-                    shader.setUniform( uniform, camera.viewMatrix().multMat44( model ).inverse() );
+                    //console.log('set', uniform, invert( mult( view, model ) ) );
+                    shader.setUniform( uniform, invert( mult( view, model ) ) );
                     break;
                 case 'MODELVIEWPROJECTIONINVERSE':
-                    //console.log('set', uniform, projection.multMat44( camera.viewMatrix() ).multMat44( model ).inverse() );
-                    shader.setUniform( uniform, projection.multMat44( camera.viewMatrix() ).multMat44( model ).inverse() );
+                    //console.log('set', uniform, invert( mult( projection, view, model ) ) );
+                    shader.setUniform( uniform, invert( mult( projection, view, model ) ) );
                     break;
                 case 'MODELINVERSETRANSPOSE':
-                    //console.log('set', uniform, new alfador.Mat44( model ).toMat33().inverse().transpose() );
-                    shader.setUniform( uniform, new alfador.Mat44( model ).toMat33().inverse().transpose() );
+                    //console.log('set', uniform, transposeInverse( model ) );
+                    shader.setUniform( uniform, transposeInverse( model ) );
                     break;
                 case 'MODELVIEWINVERSETRANSPOSE':
-                    var view = camera.viewMatrix();
-                    //console.log('set', uniform, new alfador.Mat44( view ).toMat33().multMat33( new alfador.Mat44( model ).toMat33().inverse().transpose() ) );
-                    shader.setUniform( uniform, new alfador.Mat44( view ).toMat33().multMat33( new alfador.Mat44( model ).toMat33().inverse().transpose() ) );
+                    //console.log('set', uniform,  multInverseTranspose( view, model ) );
+                    shader.setUniform( uniform, multInverseTranspose( view, model ) );
                     break;
                 case 'JOINTMATRIX':
                     shader.setUniform( uniform, getJointArray( node.skin ) );
                     break;
                 default:
                     // attribute semantic
-                    if ( material.values[ parameter ] ) {
+                    if ( material.values[ parameter ] !== undefined ) {
                         //console.log('set', uniform, material.values[ parameter ]);
                         shader.setUniform( uniform, material.values[ parameter ] );
                     } else {
@@ -239,12 +253,19 @@
     function renderHierarchy( node, parentMatrix ) {
         var matrix;
         if ( node.matrix ) {
-            matrix = node.matrix;
+            matrix = glm.mat4.clone( node.matrix );
         } else {
-            matrix = alfador.Mat44.identity().toArray();
+            matrix = glm.mat4.create();
         }
+
+        // check if node has animations
+        // if ( node.animations ) {
+        //     var poseMatrix = getAnimationPose( node, time );
+        //     matrix = poseMatrix; //glm.mat4.multiply( matrix, poseMatrix, matrix );
+        // }
+
         if ( parentMatrix ) {
-            matrix = new alfador.Mat44( parentMatrix ).multMat44( matrix ).toArray();
+            matrix = glm.mat4.multiply( matrix, parentMatrix, matrix );
         }
         if ( node.meshes ) {
             node.meshes.forEach( function( mesh ) {
@@ -259,7 +280,7 @@
         });
     }
 
-    // function renderShape( shape, matrix, color ) {
+    // function renderShape( shape, position, color ) {
     //     if ( !flat ) {
     //         return;
     //     }
@@ -267,8 +288,8 @@
     //     flat.push();
     //     viewport.push();
     //
-    //     flat.setUniform( 'uModelMatrix', matrix );
-    //     flat.setUniform( 'uViewMatrix', camera.viewMatrix() );
+    //     flat.setUniform( 'uModelMatrix', glm.mat4.fromTranslation( glm.mat4.create(), position ) );
+    //     flat.setUniform( 'uViewMatrix', view );
     //     flat.setUniform( 'uProjectionMatrix', projection );
     //     flat.setUniform( 'uColor', color );
     //
@@ -278,7 +299,7 @@
     //     flat.pop();
     // }
 
-    function renderTransform( matrix ) {
+    function renderAxes() {
         if ( !flat ) {
             return;
         }
@@ -286,24 +307,21 @@
         flat.push();
         viewport.push();
 
-        flat.setUniform( 'uViewMatrix', camera.viewMatrix() );
+        flat.setUniform( 'uViewMatrix', view );
         flat.setUniform( 'uProjectionMatrix', projection );
 
-        var transform = new alfador.Mat44( matrix ).decompose();
-
-        var x = transform.rotation.xAxis();
-        var y = transform.rotation.yAxis();
-        var z = transform.rotation.zAxis();
-
-        flat.setUniform( 'uModelMatrix', new alfador.Transform({ translation: transform.translation }).rotateZTo( x ).matrix() );
+        var matrix = glm.mat4.create();
+        flat.setUniform( 'uModelMatrix', matrix );
         flat.setUniform( 'uColor', [ 1, 0, 0 ] );
         line.draw();
 
-        flat.setUniform( 'uModelMatrix', new alfador.Transform({ translation: transform.translation }).rotateZTo( y ).matrix() );
+        matrix = glm.mat4.fromRotation( matrix, -Math.PI / 2, [ 1, 0, 0 ] );
+        flat.setUniform( 'uModelMatrix', matrix );
         flat.setUniform( 'uColor', [ 0, 1, 0 ] );
         line.draw();
 
-        flat.setUniform( 'uModelMatrix', new alfador.Transform({ translation: transform.translation }).rotateZTo( z ).matrix() );
+        matrix = glm.mat4.fromRotation( matrix, -Math.PI / 2, [ 0, 1, 0 ] );
+        flat.setUniform( 'uModelMatrix', matrix );
         flat.setUniform( 'uColor', [ 0, 0, 1 ] );
         line.draw();
 
@@ -315,90 +333,112 @@
 
         time = ( Date.now() - start ) / 1000;
 
+        view = glm.mat4.lookAt( view, camera.eye, camera.center, camera.up );
+
         // render scene
         scene.nodes.forEach( function( node ) {
             renderHierarchy( node );
         });
 
         // render origin
-        renderTransform([
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        ]);
+        renderAxes();
 
         // continue to next frame
     	requestAnimationFrame( render );
     }
 
     var bounds = {
-        min: {
-            x: 0,
-            y: 0,
-            z: 0
-        },
-        max: {
-            x: 0,
-            y: 0,
-            z: 0
-        }
+        min: glm.vec3.create(),
+        max: glm.vec3.create()
     };
 
-    function firstPass( node ) {
-        if ( node.camera ) {
-            camera = new alfador.Transform( new alfador.Mat44( node.matrix ) );
-            // var proj = node.camera[ node.camera.type ];
-            // if ( node.camera.type === 'perspective' ) {
-            //     // perspective
-            //     projection = alfador.Mat44.perspective(
-            //         proj.yfov,
-            //         proj.aspect_ratio,
-            //         proj.znear,
-            //         proj.zfar );
-            // } else {
-            //     // orthographic
-            //     projection = alfador.Mat44.ortho(
-            //         -proj.xmag, proj.xmag,
-            //         -proj.ymag, proj.ymag,
-            //         proj.znear, proj.zfar );
-            // }
+    function firstPass( node, parentMatrix ) {
+        var matrix;
+        if ( node.matrix ) {
+            matrix = glm.mat4.clone( node.matrix );
+        } else {
+            matrix = glm.mat4.create();
         }
+        if ( parentMatrix ) {
+            matrix = glm.mat4.multiply( matrix, parentMatrix, matrix );
+        }
+
         if ( node.meshes ) {
             node.meshes.forEach( function( mesh ) {
                 mesh.primitives.forEach( function( primitive ) {
+                    var min = glm.vec3.transformMat4( glm.vec3.create(), primitive.attributes.POSITION.min, matrix );
+                    var max = glm.vec3.transformMat4( glm.vec3.create(), primitive.attributes.POSITION.max, matrix );
                     // min
-                    bounds.min.x = Math.min( bounds.min.x, primitive.attributes.POSITION.min[0] );
-                    bounds.min.y = Math.min( bounds.min.y, primitive.attributes.POSITION.min[1] );
-                    bounds.min.z = Math.min( bounds.min.z, primitive.attributes.POSITION.min[2] );
+                    bounds.min[0] = Math.min( bounds.min[0], min[0] );
+                    bounds.min[1] = Math.min( bounds.min[1], min[1] );
+                    bounds.min[2] = Math.min( bounds.min[2], min[2] );
                     // max
-                    bounds.max.x = Math.max( bounds.max.x, primitive.attributes.POSITION.max[0] );
-                    bounds.max.y = Math.max( bounds.max.y, primitive.attributes.POSITION.max[1] );
-                    bounds.max.z = Math.max( bounds.max.z, primitive.attributes.POSITION.max[2] );
+                    bounds.max[0] = Math.max( bounds.max[0], max[0] );
+                    bounds.max[1] = Math.max( bounds.max[1], max[1] );
+                    bounds.max[2] = Math.max( bounds.max[2], max[2] );
                 });
             });
         }
+
+        // if ( node.camera ) {
+        //     camera = new alfador.Transform( new alfador.Mat44( node.matrix ) );
+        //     var proj = node.camera[ node.camera.type ];
+        //     if ( node.camera.type === 'perspective' ) {
+        //         // perspective
+        //         projection = alfador.Mat44.perspective(
+        //             proj.yfov,
+        //             proj.aspect_ratio,
+        //             proj.znear,
+        //             proj.zfar );
+        //     } else {
+        //         // orthographic
+        //         projection = alfador.Mat44.ortho(
+        //             -proj.xmag, proj.xmag,
+        //             -proj.ymag, proj.ymag,
+        //             proj.znear, proj.zfar );
+        //     }
+        // }
+
         node.children.forEach( function( child ) {
             firstPass( child );
         });
     }
 
+    function getSceneSummary() {
+        var center = glm.vec3.create();
+        center[0] = ( bounds.max[0] + bounds.min[0] ) / 2;
+        center[1] = ( bounds.max[1] + bounds.min[1] ) / 2;
+        center[2] = ( bounds.max[2] + bounds.min[2] ) / 2;
+        var radius = Math.max( glm.vec3.length( bounds.min ), glm.vec3.length( bounds.max ) );
+        return {
+            center: center,
+            radius: radius
+        };
+    }
+
     function initCameraControls() {
 
         if ( !camera ) {
-            var diff = new alfador.Vec3([
-                bounds.max.x - bounds.min.x,
-                bounds.max.y - bounds.min.y,
-                bounds.max.z - bounds.min.z
-            ]).length();
-            camera = new alfador.Transform({
-                translation: [ 0, 0, diff * 2 ]
-            });
+            var sphere = getSceneSummary();
+            // camera position
+            var eye = glm.vec3.create();
+            eye[2] = sphere.radius * 2;
+            // camera up
+            var up = glm.vec3.create();
+            up[1] = 1.0;
+            // center of scene
+            var center = sphere.center;
+            camera = {
+                up: up,
+                eye: eye,
+                center: center
+            };
         }
 
         var lastPos;
         var down;
-        var distance = camera.translation.length();
+        var diff = glm.vec3.sub( glm.vec3.create(), camera.center, camera.eye );
+        var distance = glm.vec3.length( diff );
         var MAX_DISTANCE = distance * 10;
         var MIN_DISTANCE = distance / 10;
 
@@ -411,6 +451,8 @@
         };
         window.onmousemove = function( event ) {
             if ( down ) {
+                var X_FACTOR = 0.1;
+                var Y_FACTOR = 0.2;
                 var pos = {
                     x: event.screenX,
                     y: event.screenY
@@ -419,10 +461,27 @@
                     x: pos.x - lastPos.x,
                     y: pos.y - lastPos.y
                 };
-                camera.translation = new alfador.Vec3( 0, 0, 0 );
-                camera.rotateWorld( delta.x * -0.2 * ( Math.PI / 180 ), [ 0, 1, 0 ] );
-                camera.rotateLocal( delta.y * -0.1 * ( Math.PI / 180 ), [ 1, 0, 0 ] );
-                camera.translateLocal([ 0, 0, distance ]);
+                // get difference vector
+                var diff = glm.vec3.sub( glm.vec3.create(), camera.eye, camera.center );
+                // normalize it
+                diff = glm.vec3.normalize( diff, diff );
+                // rotate along world y-axis
+                var angle = delta.x * -X_FACTOR * ( Math.PI / 180 );
+                var rot = glm.mat4.fromRotation( glm.mat4.create(), angle, [ 0, 1, 0 ] );
+                // rotate along local x-axis
+                angle = delta.y * Y_FACTOR * ( Math.PI / 180 );
+                var x = glm.vec3.create();
+                x = glm.vec3.cross( x, diff, up );
+                rot = glm.mat4.rotate( rot, rot, angle, x );
+                // rotate camera direction
+                diff = glm.vec3.transformMat4(diff, diff, rot);
+                diff = glm.vec3.normalize( diff, diff );
+                // scale it by the distance
+                diff = glm.vec3.scale( diff, diff, distance );
+                // add it to center to get new eye pos
+                camera.eye = glm.vec3.add( camera.eye, center, diff );
+                camera.up = glm.vec3.transformMat4(camera.up, camera.up, rot);
+                camera.up = glm.vec3.normalize( camera.up, camera.up );
                 lastPos = pos;
             }
         };
@@ -430,8 +489,14 @@
             var SCROLL_FACTOR = 0.0001;
             distance += ( event.deltaY * SCROLL_FACTOR * MAX_DISTANCE );
             distance = Math.min( Math.max( distance, MIN_DISTANCE ), MAX_DISTANCE );
-            camera.translation = new alfador.Vec3( 0, 0, 0 );
-            camera.translateLocal([ 0, 0, distance ]);
+            // get difference vector
+            var diff = glm.vec3.sub( glm.vec3.create(), camera.eye, camera.center );
+            // normalize it
+            diff = glm.vec3.normalize( diff, diff );
+            // scale it by the updated distance
+            diff = glm.vec3.scale( diff, diff, distance );
+            // add it to center to get new eye pos
+            camera.eye = glm.vec3.add( camera.eye, center, diff );
         };
         window.onmouseup = function() {
             down = false;
@@ -450,20 +515,17 @@
                 width: window.innerWidth,
                 height: window.innerHeight
             });
-            projection = alfador.Mat44.perspective(
-                60 * ( Math.PI / 180 ),
-                window.innerWidth / window.innerHeight,
-                0.1,
-                1000 );
+
+            projection = glm.mat4.perspective(
+                projection,
+                FOV, ASPECT_RATIO(), NEAR, FAR );
 
             // resize viewport on window resize
             window.addEventListener( 'resize', function() {
             	viewport.resize( window.innerWidth, window.innerHeight );
-                projection = alfador.Mat44.perspective(
-                   60 * ( Math.PI / 180 ),
-                   window.innerWidth / window.innerHeight,
-                   0.1,
-                   1000 );
+                projection = glm.mat4.perspective(
+                    projection,
+                    FOV, ASPECT_RATIO(), NEAR, FAR );
             });
 
             new esper.Shader({
@@ -488,18 +550,14 @@
                 mode: 'LINES'
             });
 
-            cube = new esper.Renderable({
-                vertices: {
-                    0: geometry.Cube.positions( 0.5 )
-                },
-                indices: geometry.Cube.indices()
-            });
+            // sphere = new esper.Renderable({
+            //     vertices: {
+            //         0: geometry.Sphere.positions( 0.1 )
+            //     },
+            //     indices: geometry.Sphere.indices()
+            // });
 
-            shapes = [
-                cube
-            ];
-
-            glTFLoader.load('./models/Cesium_Man/Cesium_Man.gltf', function( err, gltf ) {
+            glTFLoader.load('./models/vc/vc.gltf', function( err, gltf ) {
                 if ( err ) {
                     console.error( err );
                     return;
