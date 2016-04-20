@@ -5,7 +5,6 @@
     var _ = require('lodash');
     var glm = require('gl-matrix');
     var esper = require('esper');
-    //var geometry = require('esper-geometry');
     var glTFLoader = require('./scripts/glTFLoader');
     var glTFConstructor = require('./scripts/glTFConstructor');
 
@@ -21,7 +20,6 @@
     var view = glm.mat4.create();
     var projection = glm.mat4.create();
     var flat;
-    //var sphere;
     var line;
 
     var start = Date.now();
@@ -32,8 +30,13 @@
         var last = frames[ len - 1 ];
         var mod = time % last;
         var i = 0;
-        while ( frames[ (i+1) % len ] < mod ) {
+        while ( i < len &&
+            ( frames[i] > mod || frames[ (i+1) % len ] < mod ) ) {
             i++;
+        }
+        if ( i === len ) {
+            // no frame matches time
+            return null;
         }
         var j = (i+1) % len;
         var t0 = frames[ i ];
@@ -48,6 +51,9 @@
 
     function interpolateQuat( time, channel ) {
         var frames = findKeyFrame( time, channel.input );
+        if ( !frames ) {
+            return null;
+        }
         var a = channel.values[ frames.from ];
         var b = channel.values[ frames.to ];
         return glm.quat.slerp( glm.quat.create(), a, b, frames.t );
@@ -55,6 +61,9 @@
 
     function interpolateVec3( time, channel ) {
         var frames = findKeyFrame( time, channel.input );
+        if ( !frames ) {
+            return null;
+        }
         var a = channel.values[ frames.from ];
         var b = channel.values[ frames.to ];
         return glm.vec3.lerp( glm.vec3.create(), a, b, frames.t );
@@ -62,9 +71,30 @@
 
     function getAnimationPose( joint, time ) {
         var animation = joint.animations[ Object.keys( joint.animations )[0] ];
-        var rotation = interpolateQuat( time, animation.rotation );
-        var scale = interpolateVec3( time, animation.scale );
-        var translation = interpolateVec3( time, animation.translation );
+        // rotation
+        var rotation;
+        if ( animation.rotation ) {
+            rotation = interpolateQuat( time, animation.rotation );
+        }
+        if (!rotation) {
+            rotation = joint.rotation;
+        }
+        // translation
+        var translation;
+        if ( animation.translation ) {
+            translation = interpolateVec3( time, animation.translation );
+        }
+        if (!translation) {
+            translation = joint.translation;
+        }
+        // scale
+        var scale;
+        if ( animation.scale ) {
+            scale = interpolateVec3( time, animation.scale );
+        }
+        if (!scale) {
+            scale = joint.scale;
+        }
         return glm.mat4.fromRotationTranslationScale( glm.mat4.create(), rotation, translation, scale );
     }
 
@@ -254,16 +284,11 @@
         var matrix;
         if ( node.matrix ) {
             matrix = glm.mat4.clone( node.matrix );
+        } else if ( node.animations ) {
+            matrix = getAnimationPose( node, time );
         } else {
             matrix = glm.mat4.create();
         }
-
-        // check if node has animations
-        // if ( node.animations ) {
-        //     var poseMatrix = getAnimationPose( node, time );
-        //     matrix = poseMatrix; //glm.mat4.multiply( matrix, poseMatrix, matrix );
-        // }
-
         if ( parentMatrix ) {
             matrix = glm.mat4.multiply( matrix, parentMatrix, matrix );
         }
@@ -279,25 +304,6 @@
             renderHierarchy( child, matrix );
         });
     }
-
-    // function renderShape( shape, position, color ) {
-    //     if ( !flat ) {
-    //         return;
-    //     }
-    //
-    //     flat.push();
-    //     viewport.push();
-    //
-    //     flat.setUniform( 'uModelMatrix', glm.mat4.fromTranslation( glm.mat4.create(), position ) );
-    //     flat.setUniform( 'uViewMatrix', view );
-    //     flat.setUniform( 'uProjectionMatrix', projection );
-    //     flat.setUniform( 'uColor', color );
-    //
-    //     shape.draw();
-    //
-    //     viewport.pop();
-    //     flat.pop();
-    // }
 
     function renderAxes() {
         if ( !flat ) {
@@ -405,10 +411,10 @@
     }
 
     function getSceneSummary() {
-        var center = glm.vec3.create();
-        center[0] = ( bounds.max[0] + bounds.min[0] ) / 2;
-        center[1] = ( bounds.max[1] + bounds.min[1] ) / 2;
-        center[2] = ( bounds.max[2] + bounds.min[2] ) / 2;
+        var center = glm.vec3.fromValues(
+            ( bounds.max[0] + bounds.min[0] ) / 2,
+            ( bounds.max[1] + bounds.min[1] ) / 2,
+            ( bounds.max[2] + bounds.min[2] ) / 2 );
         var radius = Math.max( glm.vec3.length( bounds.min ), glm.vec3.length( bounds.max ) );
         return {
             center: center,
@@ -421,13 +427,11 @@
         if ( !camera ) {
             var sphere = getSceneSummary();
             // camera position
-            var eye = glm.vec3.create();
-            eye[2] = sphere.radius * 2;
+            var eye = glm.vec3.fromValues(0, 0, sphere.radius * 2);
             // camera up
-            var up = glm.vec3.create();
-            up[1] = 1.0;
+            var up = glm.vec3.fromValues(0, 1, 0);
             // center of scene
-            var center = sphere.center;
+            var center = glm.vec3.create(); //sphere.center;
             camera = {
                 up: up,
                 eye: eye,
@@ -550,14 +554,7 @@
                 mode: 'LINES'
             });
 
-            // sphere = new esper.Renderable({
-            //     vertices: {
-            //         0: geometry.Sphere.positions( 0.1 )
-            //     },
-            //     indices: geometry.Sphere.indices()
-            // });
-
-            glTFLoader.load('./models/vc/vc.gltf', function( err, gltf ) {
+            glTFLoader.load('./models/Cesium_Man/Cesium_Man.gltf', function( err, gltf ) {
                 if ( err ) {
                     console.error( err );
                     return;

@@ -58,7 +58,7 @@
                 },
                 textures: function( gltf, description, done ) {
                     description.instance = new esper.ColorTexture2D({
-                        image: description.source.image,
+                        src: description.source.image,
                         wrapS: description.sampler.wrapS,
                         wrapT: description.sampler.wrapT,
                         minFilter: description.sampler.minFilter,

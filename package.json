@@ -9,7 +9,7 @@
     "browserify": "13.0.0",
     "compression": "1.6.1",
     "del": "2.2.0",
-    "esper": "0.9.0",
+    "esper": "0.10.1",
     "express": "4.13.4",
     "gl-matrix": "2.3.2",
     "gulp": "3.9.1",

@@ -2,13 +2,13 @@
 
     'use strict';
 
-    var async = require('./util/async');
+    var Async = require('./util/Async');
 
     var CATEGORY_DEP_ORDER = [
         [ 'extensions' ],
         [ 'buffers', 'shaders', 'images', 'samplers', 'cameras' ],
-        [ 'bufferViews', 'programs' ],
-        [ 'textures', 'accessors' ],
+        [ 'bufferViews', 'textures', 'programs' ],
+        [ 'accessors' ],
         [ 'meshes', 'skins' ],
         [ 'nodes' ],
         [ 'techniques', 'animations' ],
@@ -23,36 +23,28 @@
         'images'
     ];
 
-    var ABSOLUTE_PATH_REGEX = new RegExp('^' + window.location.protocol, 'i');
     var DATA_URI_REGEX = new RegExp('^data:');
-
-    function isAbsolutePath(path) {
-        return ABSOLUTE_PATH_REGEX.test(path);
-    }
 
     function getBaseURL(path) {
         var i = path.lastIndexOf('/');
         return(i !== 0) ? path.substring(0, i + 1) : '';
     }
 
-    function resolvePathIfNeeded(baseURL, path) {
-        if (isAbsolutePath(path)) {
-            return path;
-        }
+    function resolvePath(baseURL, path) {
         if (DATA_URI_REGEX.test(path)) {
             return path;
         }
         return baseURL + path;
     }
 
-    function resolvePathsForCategories(json, baseURL) {
+    function resolvePaths(json, baseURL) {
         CATEGORIES_TO_RESOLVE.forEach( function(category) {
             var descriptions = json[category];
             if (descriptions) {
                 Object.keys(descriptions).forEach( function(key) {
                     var description = descriptions[key];
                     // resolve and replace uri
-                    description.uri = resolvePathIfNeeded(baseURL, description.uri);
+                    description.uri = resolvePath(baseURL, description.uri);
                 });
             }
         });
@@ -80,7 +72,7 @@
         req.send(null);
     }
 
-    function getCategoryGroups(json) {
+    function getDependencyGroups(json) {
         var groups = [];
         CATEGORY_DEP_ORDER.forEach( function(group) {
             var filtered = group.filter( function(categoryId) {
@@ -102,28 +94,28 @@
                     var category = json[categoryId];
                     Object.keys(category).map( function(key) {
                         tasks.push( function(done) {
-                            console.log('Loading ' + categoryId + ': ' + key);
+                            //console.log('Loading ' + categoryId + ': ' + key);
                             handler(json, category[key], done);
                         });
                     });
                 }
             });
-            console.log('Loading dependency group', JSON.stringify(categoryIds));
+            //console.log('Loading dependency group', JSON.stringify(categoryIds));
             // execute all categories within the same dependency level
             // in parallel
-            async.parallel( tasks, done );
+            Async.parallel( tasks, done );
         };
     }
 
     function parseJSON(json, handlers) {
         // get the category IDs that are in the glTF blob
-        var groups = getCategoryGroups(json);
+        var groups = getDependencyGroups(json);
         // create batches for each dependency level
         var batches = groups.map( function(categoryIds) {
             // return a batch for each category dependency group
             return createParallelHandlers(json, categoryIds, handlers);
         });
-        async.series(batches, function(err) {
+        Async.series(batches, function(err) {
             if (err) {
                 handlers.error(err);
             } else {
@@ -141,7 +133,7 @@
                     handlers.error(err);
                     return;
                 }
-                json = resolvePathsForCategories(json, baseURL);
+                json = resolvePaths(json, baseURL);
                 parseJSON(json, handlers);
             });
         },

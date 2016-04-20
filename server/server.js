@@ -1,6 +1,6 @@
 ( function() {
 
-    "use strict";
+    'use strict';
 
     var path = require('path');
     var express = require('express');
@@ -16,7 +16,7 @@
     app.use( compression() );
     app.use( express.static( APP_DIR ) );
 
-    app.listen( HTTP_PORT, /*HOST,*/ function() {
+    app.listen( HTTP_PORT, function() {
         console.log( 'Listening on port %d', HTTP_PORT );
     });
 
