@@ -5,9 +5,9 @@
     var ImageLoader = require('../util/ImageLoader');
 
     module.exports = function( gltf, description, done ) {
+        // load image
         ImageLoader.load({
             url: description.uri,
-            responseType: 'arraybuffer',
             success: function( image ) {
                 description.image = image;
                 done( null );

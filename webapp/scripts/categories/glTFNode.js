@@ -2,25 +2,36 @@
 
     'use strict';
 
+    var Node = require('../render/Node');
+
     module.exports = function( gltf, description, done ) {
+        var camera;
         if (description.camera) {
-            description.camera = gltf.cameras[description.camera];
+            camera = gltf.cameras[description.camera].instance;
         }
+        var skin;
         if (description.skin) {
-            description.skin = gltf.skins[description.skin];
+            skin = gltf.skins[description.skin].instance;
         }
+        var primitives;
         if (description.meshes) {
-            description.meshes = description.meshes.map( function(mesh) {
-                return gltf.meshes[ mesh ];
+            primitives = [];
+            description.meshes.forEach( function( mesh ) {
+                gltf.meshes[ mesh ].primitives.forEach( function( primitive ) {
+                    primitives.push( primitive.instance );
+                });
             });
         }
-        if (description.skeletons) {
-            description.skeletons = description.skeletons.map( function(skeleton) {
-                return gltf.nodes[ skeleton ];
-            });
-        }
-        description.children = description.children.map( function(child) {
-            return gltf.nodes[ child ];
+        // create instance
+        description.instance = new Node({
+            matrix: description.matrix,
+            rotation: description.rotation,
+            translation: description.translation,
+            scale: description.scale,
+            camera: camera,
+            skin: skin,
+            jointName: description.jointName,
+            primitives: primitives
         });
         done( null );
     };

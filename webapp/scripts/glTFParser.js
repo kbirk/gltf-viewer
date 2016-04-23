@@ -8,11 +8,11 @@
         [ 'extensions' ],
         [ 'buffers', 'shaders', 'images', 'samplers', 'cameras' ],
         [ 'bufferViews', 'textures', 'programs' ],
-        [ 'accessors' ],
-        [ 'meshes', 'skins' ],
-        [ 'nodes' ],
-        [ 'techniques', 'animations' ],
+        [ 'accessors', 'techniques' ],
         [ 'materials' ],
+        [ 'meshes' ],
+        [ 'nodes' ],
+        [ 'skins', 'animations' ],
         [ 'scenes' ],
         [ 'scene' ]
     ];
