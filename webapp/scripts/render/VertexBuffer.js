@@ -5,11 +5,8 @@
     var context = require('./gl');
 
     function VertexBuffer( args ) {
-        var gl = this.gl = context();
+        this.gl = context();
         this.buffer = args.buffer;
-        // this.buffer = gl.createBuffer();
-        // gl.bindBuffer( gl.ARRAY_BUFFER, this.buffer );
-        // gl.bufferData( gl.ARRAY_BUFFER, args.source, gl.STATIC_DRAW );
         this.index = args.index;
         this.size = args.size;
         this.type = args.type;

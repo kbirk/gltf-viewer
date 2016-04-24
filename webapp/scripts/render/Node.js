@@ -71,19 +71,6 @@
             glm.vec3.dot( t, x ), glm.vec3.dot( t, y ), glm.vec3.dot( t, z ), 1 );
     };
 
-    Node.prototype.render = function( time ) {
-        var globalMatrix = this.getGlobalMatrix( time );
-        var x = glm.vec3.fromValues( globalMatrix[0], globalMatrix[1], globalMatrix[2] );
-        var y = glm.vec3.fromValues( globalMatrix[4], globalMatrix[5], globalMatrix[6] );
-        var z = glm.vec3.fromValues( globalMatrix[8], globalMatrix[9], globalMatrix[10] );
-        glm.vec3.normalize( x, x );
-        glm.vec3.normalize( y, y );
-        glm.vec3.normalize( z, z );
-        var t = glm.vec3.fromValues( globalMatrix[12], globalMatrix[13], globalMatrix[14] );
-
-
-    };
-
     module.exports = Node;
 
 }());

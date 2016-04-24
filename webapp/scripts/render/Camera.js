@@ -20,14 +20,14 @@
             znear: NEAR,
             zfar: FAR
         };
+        this.projectionMatrix = glm.mat4.create();
     }
 
     Camera.prototype.getProjectionMatrix = function() {
-        var matrix = glm.mat4.create();
         if ( this.projection.type === 'perspective' ) {
             // perspective
             glm.mat4.perspective(
-                matrix,
+                this.projectionMatrix,
                 this.projection.yfov,
                 ASPECT_RATIO(),
                 this.projection.znear,
@@ -35,12 +35,12 @@
         } else {
             // orthographic
             glm.mat4.ortho(
-                matrix,
+                this.projectionMatrix,
                 -this.projection.xmag, this.projection.xmag,
                 -this.projection.ymag, this.projection.ymag,
                 this.projection.znear, this.projection.zfar );
         }
-        return matrix;
+        return this.projectionMatrix;
     };
 
     module.exports = Camera;

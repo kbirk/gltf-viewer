@@ -40,16 +40,16 @@
     function Shader( args ) {
         // create vertex shader
         var gl = this.gl = context();
-        var vertexShader = gl.createShader( args.vertex.type );
-        gl.shaderSource( vertexShader, args.vertex.source );
+        var vertexShader = gl.createShader( gl.VERTEX_SHADER );
+        gl.shaderSource( vertexShader, args.vertex );
         gl.compileShader( vertexShader );
         // check for error
         if ( !gl.getShaderParameter( vertexShader, gl.COMPILE_STATUS ) ) {
             throw new Error( gl.getShaderInfoLog( vertexShader ) );
         }
         // create fragment shader
-        var fragmentShader = gl.createShader( args.fragment.type );
-        gl.shaderSource( fragmentShader, args.fragment.source );
+        var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
+        gl.shaderSource( fragmentShader, args.fragment );
         gl.compileShader( fragmentShader );
         // check for error
         if ( !gl.getShaderParameter( fragmentShader, gl.COMPILE_STATUS ) ) {

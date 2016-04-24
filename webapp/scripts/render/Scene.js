@@ -22,6 +22,12 @@
             node.matrix[13],
             node.matrix[14] ) );
 
+        var x = glm.vec3.create();
+        var y = glm.vec3.create();
+        var z = glm.vec3.create();
+        var translation = glm.vec3.create();
+        var rotation = glm.mat4.create();
+
         window.onmousedown = function( event ) {
             last = {
                 x: event.screenX,
@@ -41,22 +47,38 @@
 
                 var matrix = node.matrix;
 
-                // get difference vector
-                var x = glm.vec3.normalize( glm.vec3.create(), glm.vec3.fromValues( matrix[0], matrix[1], matrix[2] ) );
-                var y = glm.vec3.normalize( glm.vec3.create(), glm.vec3.fromValues( matrix[4], matrix[5], matrix[6] ) );
-                var z = glm.vec3.normalize( glm.vec3.create(), glm.vec3.fromValues( matrix[8], matrix[9], matrix[10] ) );
-                var translation = glm.vec3.fromValues( matrix[12], matrix[13], matrix[14] );
+                // get axes
+                // x
+                x[0] = matrix[0];
+                x[1] = matrix[1];
+                x[2] = matrix[2];
+                glm.vec3.normalize( x, x );
+                // y
+                y[0] = matrix[4];
+                y[1] = matrix[5];
+                y[2] = matrix[6];
+                glm.vec3.normalize( y, y );
+                // z
+                z[0] = matrix[8];
+                z[1] = matrix[9];
+                z[2] = matrix[10];
+                glm.vec3.normalize( z, z );
+                // translation
+                translation[0] = matrix[12];
+                translation[1] = matrix[13];
+                translation[2] = matrix[14];
+
                 // rotate along world y-axis
                 var angle = dx * X_FACTOR * ( Math.PI / 180 );
-                var rot = glm.mat4.fromRotation( glm.mat4.create(), angle, [ 0, 1, 0 ] );
+                glm.mat4.fromRotation( rotation, angle, [ 0, 1, 0 ] );
                 // rotate along local x-axis
                 angle = dy * Y_FACTOR * ( Math.PI / 180 );
-                glm.mat4.rotate( rot, rot, angle, x );
+                glm.mat4.rotate( rotation, rotation, angle, x );
 
-                glm.vec3.transformMat4( x, x, rot );
-                glm.vec3.transformMat4( y, y, rot );
-                glm.vec3.transformMat4( z, z, rot );
-                glm.vec3.transformMat4( translation, translation, rot );
+                glm.vec3.transformMat4( x, x, rotation );
+                glm.vec3.transformMat4( y, y, rotation );
+                glm.vec3.transformMat4( z, z, rotation );
+                glm.vec3.transformMat4( translation, translation, rotation );
 
                 matrix[0] = x[0];
                 matrix[1] = x[1];
@@ -82,8 +104,11 @@
             distance += ( event.deltaY * SCROLL_FACTOR * MAX_DISTANCE );
             distance = Math.min( Math.max( distance, MIN_DISTANCE ), MAX_DISTANCE );
             var matrix = node.matrix;
-            // get translation vector
-            var translation = glm.vec3.normalize( glm.mat4.create(), glm.vec3.fromValues( matrix[12], matrix[13], matrix[14] ) );
+            // get normalized translation vector
+            translation[0] = matrix[12];
+            translation[1] = matrix[13];
+            translation[2] = matrix[14];
+            glm.vec3.normalize( translation, translation );
             // scale it by the updated distance
             glm.vec3.scale( translation, translation, distance );
             matrix[12] = translation[0];
@@ -96,19 +121,38 @@
         };
     }
 
+    function addCameraChangeControls( scene ) {
+        var current = 0;
+        document.onkeypress = function() {
+            current = (current+1) % scene.cameraNodes.length;
+            scene.activeCameraNode = scene.cameraNodes[current];
+        };
+    }
+
     function Scene( args ) {
         this.nodes = args.nodes;
-        this.cameras = args.cameras;
-        if ( this.cameras.length === 0 ) {
+        this.cameraNodes = args.cameras;
+        if ( this.cameraNodes.length === 0 ) {
             var camera = new Node({
                 camera: new Camera(),
                 matrix: glm.mat4.fromTranslation( glm.mat4.create(), [ 0, 0, DEFAULT_DISTANCE ] )
             });
-            this.cameras.push( camera );
+            this.cameraNodes.push( camera );
             this.nodes.push( camera );
             addMouseControls( camera );
+        } else {
+            addCameraChangeControls( this );
         }
+        this.activeCameraNode = this.cameraNodes[0];
     }
+
+    Scene.prototype.getGlobalViewMatrix = function( time ) {
+        return this.activeCameraNode.getGlobalViewMatrix( time );
+    };
+
+    Scene.prototype.getProjectionMatrix = function() {
+        return this.activeCameraNode.camera.getProjectionMatrix();
+    };
 
     module.exports = Scene;
 

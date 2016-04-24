@@ -5,14 +5,15 @@
     var glm = require('gl-matrix');
     var context = require('./scripts/render/gl');
     var glTFLoader = require('./scripts/glTFLoader');
+    var Debug = require('./scripts/render/Debug');
 
-    var MODEL_NAME = 'Cesium_Man';
+    var MODEL_NAME = 'vc';
 
     var gl;
+    var origin;
     var scene;
-    var camera;
-    var view = glm.mat4.create();
-    var projection = glm.mat4.create();
+    var view;
+    var projection;
 
     var start = Date.now();
     var time;
@@ -50,10 +51,11 @@
         // get timestamp
         time = ( Date.now() - start ) / 1000;
         // update view matrix based on camera position
-        //glm.mat4.lookAt( view, camera.eye, camera.center, camera.up );
-        view = camera.getGlobalViewMatrix( time );
+        view = scene.getGlobalViewMatrix( time );
         // get projection matrix
-        projection = camera.camera.getProjectionMatrix();
+        projection = scene.getProjectionMatrix();
+        // render origin
+        Debug.renderNode( origin, view, projection );
         // render scene
         scene.nodes.forEach( function( node ) {
             renderHierarchy( node );
@@ -87,15 +89,11 @@
                     return;
                 }
 
+                // get scene instance
                 scene = gltf.scenes[ gltf.scene ].instance;
 
-                camera = scene.cameras[0];
-
-                var c = 0;
-                document.onkeypress = function() {
-                    c = (c+1) % scene.cameras.length;
-                    camera = scene.cameras[c];
-                };
+                // create origin matrix
+                origin = glm.mat4.create();
 
                 render();
             });
