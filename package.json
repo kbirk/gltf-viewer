@@ -1,5 +1,5 @@
 {
-  "name": "cerberus",
+  "name": "gltf-viewer",
   "version": "0.1.0",
   "private": true,
   "author": "Kevin Birk <birk.kevin@gmail.com>",
@@ -15,7 +15,6 @@
     "gulp-csso": "1.1.0",
     "gulp-jshint": "1.11.2",
     "gulp-nodemon": "2.0.6",
-    "jquery": "2.2.3",
     "jshint-stylish": "2.1.0",
     "merge-stream": "1.0.0",
     "run-sequence": "1.1.5",

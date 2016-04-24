@@ -2,11 +2,11 @@
 
     'use strict';
 
-    var $ = require('jquery');
     var glm = require('gl-matrix');
     var context = require('./scripts/render/gl');
     var glTFLoader = require('./scripts/glTFLoader');
     var Debug = require('./scripts/render/Debug');
+    var XHRLoader = require('./scripts/util/XHRLoader');
 
     var model;
     var models;
@@ -94,10 +94,12 @@
         var modelIndex = models.indexOf( model );
         if ( event.keyCode === M_CODE ) {
             modelIndex = ( modelIndex + 1 ) % models.length;
+            // switch model
+            model = models[ modelIndex ];
+            // load the model
+            loadModel( model );
         }
-        model = models[ modelIndex ];
-        // load the model
-        loadModel( model );
+
     }
 
     window.start = function() {
@@ -110,19 +112,26 @@
             // resize viewport on window resize
             window.addEventListener( 'resize', resizeCanvas );
             // get all models
-            $.get('/models', function( res ) {
-                if ( res.length === 0 ) {
-                    console.error( 'There are no models to render' );
-                    return;
+            XHRLoader.load({
+                url: 'models',
+                responseType: 'json',
+                success: function( res ) {
+                    if ( res.length === 0 ) {
+                        console.error( 'There are no models to render' );
+                        return;
+                    }
+                    models = res;
+                    model = models[0];
+                    // add model change listener
+                    window.addEventListener( 'keypress', changeModel );
+                    // load the model
+                    loadModel( model );
+                    // start rendering
+                    render();
+                },
+                error: function( err ) {
+                    console.error( err );
                 }
-                models = res;
-                model = models[0];
-                // add model change listener
-                window.addEventListener( 'keypress', changeModel );
-                // load the model
-                loadModel( model );
-                // start rendering
-                render();
             });
         }
     };

@@ -133,7 +133,7 @@
         scene.keypress = function( event ) {
             if ( event.keyCode === C_KEYCODE ) {
                 current = ( current + 1 ) % scene.cameraNodes.length;
-                scene.activeCameraNode = scene.cameraNodes[current];
+                scene.activeCameraNode = scene.cameraNodes[ current ];
             }
         };
         window.addEventListener( 'keypress', scene.keypress );

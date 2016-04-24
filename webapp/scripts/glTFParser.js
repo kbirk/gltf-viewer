@@ -3,6 +3,7 @@
     'use strict';
 
     var Async = require('./util/Async');
+    var XHRLoader = require('./util/XHRLoader');
 
     var CATEGORY_DEP_ORDER = [
         [ 'extensions' ],
@@ -27,7 +28,7 @@
 
     function getBaseURL(path) {
         var i = path.lastIndexOf('/');
-        return(i !== 0) ? path.substring(0, i + 1) : '';
+        return path.substring(0, i + 1);
     }
 
     function resolvePath(baseURL, path) {
@@ -49,27 +50,6 @@
             }
         });
         return json;
-    }
-
-    function loadJSON(path, callback) {
-        var req = new XMLHttpRequest();
-        req.open('GET', path, true);
-        req.onreadystatechange = function(event) {
-            if (req.readyState === 4) {
-                if (req.status === 200) {
-                    if (callback) {
-                        var json = JSON.parse(req.responseText);
-                        callback(null, json);
-                    }
-                } else {
-                    if (callback) {
-                        var err = 'Unable to load image from URL: `' + event.path[0].currentSrc + '`';
-                        callback(err);
-                    }
-                }
-            }
-        };
-        req.send(null);
     }
 
     function getDependencyGroups(json) {
@@ -94,13 +74,13 @@
                     var category = json[categoryId];
                     Object.keys(category).map( function(key) {
                         tasks.push( function(done) {
-                            console.log('Loading ' + categoryId + ': ' + key);
+                            //console.log('Loading ' + categoryId + ': ' + key);
                             handler(json, category[key], done);
                         });
                     });
                 }
             });
-            console.log('Loading dependency group', JSON.stringify(categoryIds));
+            //console.log('Loading dependency group', JSON.stringify(categoryIds));
             // execute all categories within the same dependency level
             // in parallel
             Async.parallel( tasks, done );
@@ -128,13 +108,15 @@
 
         load: function(path, handlers) {
             var baseURL = getBaseURL(path);
-            loadJSON(path, function(err, json) {
-                if (err) {
+            XHRLoader.load({
+                url: path,
+                responseType: 'json',
+                success: function(json) {
+                    parseJSON(resolvePaths(json, baseURL), handlers);
+                },
+                error: function( err ) {
                     handlers.error(err);
-                    return;
                 }
-                json = resolvePaths(json, baseURL);
-                parseJSON(json, handlers);
             });
         },
 
