@@ -88,10 +88,10 @@
                 this.shader.setUniform( uniform, this.textureUnit++ );
                 break;
             case 'LOCAL':
-                this.shader.setUniform( uniform, node.getMatrix() );
+                this.shader.setUniform( uniform, node.getMatrix( time ) );
                 break;
             case 'MODEL':
-                this.shader.setUniform( uniform, node.getGlobalMatrix() );
+                this.shader.setUniform( uniform, node.getGlobalMatrix( time ) );
                 break;
             case 'VIEW':
                 this.shader.setUniform( uniform, view );
@@ -100,13 +100,13 @@
                 this.shader.setUniform( uniform, projection );
                 break;
             case 'MODELVIEW':
-                this.shader.setUniform( uniform, mult2( view, node.getGlobalMatrix() ) );
+                this.shader.setUniform( uniform, mult2( view, node.getGlobalMatrix( time ) ) );
                 break;
             case 'MODELVIEWPROJECTION':
-                this.shader.setUniform( uniform, mult3( projection, view, node.getGlobalMatrix() ) );
+                this.shader.setUniform( uniform, mult3( projection, view, node.getGlobalMatrix( time ) ) );
                 break;
             case 'MODELINVERSE':
-                this.shader.setUniform( uniform, invert( node.getGlobalMatrix() ) );
+                this.shader.setUniform( uniform, invert( node.getGlobalMatrix( time ) ) );
                 break;
             case 'VIEWINVERSE':
                 this.shader.setUniform( uniform, invert( view ) );
@@ -115,16 +115,16 @@
                 this.shader.setUniform( uniform, invert( projection ) );
                 break;
             case 'MODELVIEWINVERSE':
-                this.shader.setUniform( uniform, invert( mult2( view, node.getGlobalMatrix() ) ) );
+                this.shader.setUniform( uniform, invert( mult2( view, node.getGlobalMatrix( time ) ) ) );
                 break;
             case 'MODELVIEWPROJECTIONINVERSE':
-                this.shader.setUniform( uniform, invert( mult3( projection, view, node.getGlobalMatrix() ) ) );
+                this.shader.setUniform( uniform, invert( mult3( projection, view, node.getGlobalMatrix( time ) ) ) );
                 break;
             case 'MODELINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, transposeInverse( node.getGlobalMatrix() ) );
+                this.shader.setUniform( uniform, transposeInverse( node.getGlobalMatrix( time ) ) );
                 break;
             case 'MODELVIEWINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, multInverseTranspose( view, node.getGlobalMatrix() ) );
+                this.shader.setUniform( uniform, multInverseTranspose( view, node.getGlobalMatrix( time ) ) );
                 break;
             case 'VIEWPORT':
                 // Not implemented currently

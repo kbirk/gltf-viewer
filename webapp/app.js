@@ -95,7 +95,6 @@
             // load the model
             loadModel( model );
         }
-
     }
 
     window.start = function() {
