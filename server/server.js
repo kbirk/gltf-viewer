@@ -19,10 +19,10 @@
 
     app.get('/models', function( req, res ) {
         var PREFIX = 'build/';
-        var pathes =  models.get( 'build/models' ).map( function( path ) {
+        var paths =  models.get( 'build/models' ).map( function( path ) {
             return path.replace(PREFIX, '');
         });
-        res.send( pathes );
+        res.send( paths );
     });
 
     app.listen( HTTP_PORT, function() {

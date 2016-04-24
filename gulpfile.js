@@ -18,15 +18,13 @@
     var basePath = 'webapp/';
     var paths = {
         root: basePath + 'app.js',
-        scripts: [ basePath + 'scripts/**/*.js',  basePath + 'app.js' ],
-        styles: [  basePath + 'styles/reset.css',  basePath + 'styles/**/*.css' ],
+        scripts: [ basePath + 'scripts/**/*.js', basePath + 'app.js' ],
+        styles: [ basePath + 'styles/**/*.css' ],
         index: [  basePath + 'index.html' ],
         build: 'build',
         resources: [
             basePath + 'index.html',
-            basePath + 'shaders/**/*',
-            basePath + 'models/**/*',
-            basePath + 'favicons/**/*'
+            basePath + 'models/**/*'
         ]
     };
 
@@ -80,7 +78,7 @@
     gulp.task('build-styles', function () {
         return gulp.src( paths.styles )
             .pipe( csso() )
-            .pipe( concat( project + '.css') )
+            .pipe( concat( project + '.css' ) )
             .pipe( gulp.dest( paths.build ) );
     });
 
@@ -98,14 +96,14 @@
             done );
     });
 
-    gulp.task('serve', ['build'], function() {
+    gulp.task('serve', [ 'build' ], function() {
         return nodemon({
             script: 'server/server.js',
             watch: [ 'server/**/*.js' ]
         });
     });
 
-    gulp.task('watch', ['build'], function( done ) {
+    gulp.task('watch', [ 'build' ], function( done ) {
         gulp.watch( paths.styles, [ 'build-styles' ] );
         gulp.watch( paths.resources, [ 'copy-resources' ] );
         done();

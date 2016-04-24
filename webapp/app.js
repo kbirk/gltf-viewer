@@ -36,7 +36,6 @@
     function renderHierarchy( node ) {
         if ( node.primitives ) {
             node.primitives.forEach( function( primitive ) {
-                // draw
                 renderPrimitive( node, primitive );
             });
         }
@@ -67,7 +66,7 @@
     function resizeCanvas() {
         gl.canvas.width = window.innerWidth;
         gl.canvas.height = window.innerHeight;
-        gl.viewport(0, 0, window.innerWidth, window.innerHeight );
+        gl.viewport( 0, 0, window.innerWidth, window.innerHeight );
     }
 
     function loadModel( path ) {
