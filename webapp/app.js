@@ -20,32 +20,28 @@
     var start = Date.now();
     var time;
 
-    function renderPrimitive( node, model, primitive ) {
+    function renderPrimitive( node, primitive ) {
         var material = primitive.material;
         var technique = primitive.technique;
         // enable state
         technique.enableState();
         // set uniforms
-        technique.setUniforms( node, material, model, view, projection, time );
+        technique.setUniforms( node, material, view, projection, time );
         // draw the primitive
         primitive.draw();
         // disable state
         technique.disableState();
     }
 
-    function renderHierarchy( node, parentMatrix ) {
-        var matrix = node.getMatrix( time );
-        if ( parentMatrix ) {
-            glm.mat4.multiply( matrix, parentMatrix, matrix );
-        }
+    function renderHierarchy( node ) {
         if ( node.primitives ) {
             node.primitives.forEach( function( primitive ) {
                 // draw
-                renderPrimitive( node, matrix, primitive );
+                renderPrimitive( node, primitive );
             });
         }
         node.children.forEach( function( child ) {
-            renderHierarchy( child, matrix );
+            renderHierarchy( child );
         });
     }
 

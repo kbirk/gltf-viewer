@@ -78,17 +78,20 @@
         this.textureUnit = 0;
     };
 
-    Technique.prototype.setUniform = function( uniform, node, material, model, view, projection, time ) {
+    Technique.prototype.setUniform = function( uniform, node, material, view, projection, time ) {
         if ( uniform.node ) {
-            model = uniform.node.getGlobalMatrix( time );
+            node = uniform.node;
         }
         switch ( uniform.semantic || UNIFORM_TYPES[ uniform.type ] ) {
             case 'SAMPLER_2D':
                 material.values[ uniform.id ].bind( this.textureUnit );
                 this.shader.setUniform( uniform, this.textureUnit++ );
                 break;
+            case 'LOCAL':
+                this.shader.setUniform( uniform, node.getMatrix() );
+                break;
             case 'MODEL':
-                this.shader.setUniform( uniform, model );
+                this.shader.setUniform( uniform, node.getGlobalMatrix() );
                 break;
             case 'VIEW':
                 this.shader.setUniform( uniform, view );
@@ -97,13 +100,13 @@
                 this.shader.setUniform( uniform, projection );
                 break;
             case 'MODELVIEW':
-                this.shader.setUniform( uniform, mult2( view, model ) );
+                this.shader.setUniform( uniform, mult2( view, node.getGlobalMatrix() ) );
                 break;
             case 'MODELVIEWPROJECTION':
-                this.shader.setUniform( uniform, mult3( projection, view, model ) );
+                this.shader.setUniform( uniform, mult3( projection, view, node.getGlobalMatrix() ) );
                 break;
             case 'MODELINVERSE':
-                this.shader.setUniform( uniform, invert( model ) );
+                this.shader.setUniform( uniform, invert( node.getGlobalMatrix() ) );
                 break;
             case 'VIEWINVERSE':
                 this.shader.setUniform( uniform, invert( view ) );
@@ -112,16 +115,19 @@
                 this.shader.setUniform( uniform, invert( projection ) );
                 break;
             case 'MODELVIEWINVERSE':
-                this.shader.setUniform( uniform, invert( mult2( view, model ) ) );
+                this.shader.setUniform( uniform, invert( mult2( view, node.getGlobalMatrix() ) ) );
                 break;
             case 'MODELVIEWPROJECTIONINVERSE':
-                this.shader.setUniform( uniform, invert( mult3( projection, view, model ) ) );
+                this.shader.setUniform( uniform, invert( mult3( projection, view, node.getGlobalMatrix() ) ) );
                 break;
             case 'MODELINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, transposeInverse( model ) );
+                this.shader.setUniform( uniform, transposeInverse( node.getGlobalMatrix() ) );
                 break;
             case 'MODELVIEWINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, multInverseTranspose( view, model ) );
+                this.shader.setUniform( uniform, multInverseTranspose( view, node.getGlobalMatrix() ) );
+                break;
+            case 'VIEWPORT':
+                // Not implemented currently
                 break;
             case 'JOINTMATRIX':
                 this.shader.setUniform( uniform, node.skin.getJointArray( time ) );
@@ -136,10 +142,10 @@
         }
     };
 
-    Technique.prototype.setUniforms = function( node, material, model, view, projection, time ) {
+    Technique.prototype.setUniforms = function( node, material, view, projection, time ) {
         var that = this;
         this.uniforms.forEach( function( uniform ) {
-            that.setUniform( uniform, node, material, model, view, projection, time );
+            that.setUniform( uniform, node, material, view, projection, time );
         });
     };
 
