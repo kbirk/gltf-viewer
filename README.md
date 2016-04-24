@@ -20,7 +20,7 @@ Run the development server:
 gulp
 ```
 
-The server will serve any gltf files found in the `webapp/models` directory.
+Set your browser to `http://localhost:8080`. The application will serve any gltf files found in the `webapp/models` directory.
 
 ## To-Do
 
@@ -30,16 +30,16 @@ The server will serve any gltf files found in the `webapp/models` directory.
 ## Known Issues
 
 - boxSemantics.gltf sample model
-    - `modelInverseTransposeMatrix` uniform is of type `MODELINVERSETRANSPOSE` which states type is `FLOAT_MAT3`, however type is `35676`
+    - `modelInverseTransposeMatrix` uniform is of type `MODELINVERSETRANSPOSE` which should have corresponding type of `FLOAT_MAT3`, however type is `FLOAT_MAT4`
         - Not sure if model error or implementation error
-    - `VIEWPORT` uniform semantic with no corresponding value
+    - `VIEWPORT` uniform semantic has no corresponding value `VEC4`
         - Not sure if model error or implementation error
 - box-animated.gltf sample model
-    - Animation `TIME` input has different number of elements across `translation` and `rotation` pathes and causes animation delay
+    - Animation `TIME` input has different number of elements across `translation` and `rotation` paths and causes animation delay
         - Not sure if model error or implementation error
         - Referenced in [Issue #574](https://github.com/KhronosGroup/glTF/issues/573) and [Issue #569](https://github.com/KhronosGroup/glTF/issues/569)
-- brainsteam sample model
-    - orientation is incorrect, -Z is the up vector rather than Y as with all other models
+- brainsteam.gltf sample model
+    - orientation is incorrect, -Z is the up vector rather than Y as with all other sample models
         - Not sure if model error or implementation error
     - Pistons in right arm are not rendering in the correct location
         - Not sure if model error or implementation error
