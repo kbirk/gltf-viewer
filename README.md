@@ -24,6 +24,7 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
 
 ## To-Do
 
+- reduce FLoat32Array allocations for better performance for larger animated models
 - add support for binary glb files
 - add support for embedded gltf files  
 
@@ -38,10 +39,11 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
     - Animation `TIME` input has different number of elements across `translation` and `rotation` paths and causes animation delay
         - Not sure if model error or implementation error
         - Referenced in [Issue #574](https://github.com/KhronosGroup/glTF/issues/573) and [Issue #569](https://github.com/KhronosGroup/glTF/issues/569)
-- brainsteam.gltf sample model
-    - orientation is incorrect, -Z is the up vector rather than Y as with all other sample models
+- monster.gltf sample model
+    - scale and position do not seem right
         - Not sure if model error or implementation error
-    - Pistons in right arm are not rendering in the correct location
+- brainsteam.gltf sample model
+    - Animation doesn't seem quite right, pistons in right arm are popping out, shoulders are skewing, etc
         - Not sure if model error or implementation error
 - vc.gltf sample model
     - Erroneous 'cubes' are being rendered and cars / train orientations do not seem to be correct

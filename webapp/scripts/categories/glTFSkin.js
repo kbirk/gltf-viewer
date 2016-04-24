@@ -49,10 +49,8 @@
         var accessor = gltf.accessors[ description.inverseBindMatrices ];
         var bufferView = gltf.bufferViews[ accessor.bufferView ];
         var inverseBindMatrices = getArrayBufferView( accessor, bufferView );
-        // get joints and joint indices
-        var jointIndices = {};
-        var joints = description.jointNames.map( function( jointName, index ) {
-            jointIndices[ jointName ] = index;
+        // get joints
+        var joints = description.jointNames.map( function( jointName ) {
             return getNodeByJointName( gltf.nodes, jointName ).instance;
         });
         // create instance
@@ -60,7 +58,7 @@
             bindShapeMatrix: description.bindShapeMatrix,
             inverseBindMatrices: inverseBindMatrices,
             joints: joints,
-            jointIndices: jointIndices
+            size: accessor.size
         });
         done( null );
     };

@@ -26,6 +26,7 @@
         // hierarchy
         this.parent = null;
         this.children = [];
+
     }
 
     Node.prototype.addChild = function( node ) {
@@ -33,13 +34,19 @@
         this.children.push( node );
     };
 
+    Node.prototype.getAnimation = function( name ) {
+        if ( !name || !this.animations[ name ] ) {
+            name = Object.keys( this.animations )[0];
+        }
+        return this.animations[ name ];
+    };
+
     Node.prototype.getMatrix = function( time ) {
         var matrix;
         if ( this.matrix ) {
             matrix = glm.mat4.clone( this.matrix );
         } else if ( this.animations ) {
-            var animationId = Object.keys( this.animations )[0];
-            matrix = this.animations[ animationId ].getPose( this, time );
+            matrix = this.getAnimation().getPose( this, time );
         } else {
             matrix = glm.mat4.create();
         }
@@ -50,6 +57,15 @@
         var matrix = this.getMatrix( time );
         if ( this.parent ) {
             var parentMatrix = this.parent.getGlobalMatrix( time );
+            glm.mat4.multiply( matrix, parentMatrix, matrix );
+        }
+        return matrix;
+    };
+
+    Node.prototype.getJointMatrix = function( time ) {
+        var matrix = this.getMatrix( time );
+        if ( this.parent && this.parent.jointName ) {
+            var parentMatrix = this.parent.getJointMatrix( time );
             glm.mat4.multiply( matrix, parentMatrix, matrix );
         }
         return matrix;

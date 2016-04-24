@@ -68,7 +68,7 @@
         if ( this.rotation ) {
             rotation = interpolateQuat( time, this.rotation );
         }
-        if (!rotation) {
+        if ( !rotation ) {
             rotation = node.rotation;
         }
         // translation
@@ -76,7 +76,7 @@
         if ( this.translation ) {
             translation = interpolateVec3( time, this.translation );
         }
-        if (!translation) {
+        if ( !translation ) {
             translation = node.translation;
         }
         // scale
@@ -84,7 +84,7 @@
         if ( this.scale ) {
             scale = interpolateVec3( time, this.scale );
         }
-        if (!scale) {
+        if ( !scale ) {
             scale = node.scale;
         }
         return glm.mat4.fromRotationTranslationScale( glm.mat4.create(), rotation, translation, scale );
