@@ -24,29 +24,43 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
 
 ## To-Do
 
-- reduce FLoat32Array allocations for better performance for larger animated models
+- reduce Float32Array allocations
 - add support for binary glb files
 - add support for embedded gltf files  
 
 ## Known Issues
 
-- boxSemantics.gltf sample model
+- `boxSemantics.gltf` sample model
+
     - `modelInverseTransposeMatrix` uniform is of type `MODELINVERSETRANSPOSE` which should have corresponding type of `FLOAT_MAT3`, however type is `FLOAT_MAT4`
         - Not sure if model error or implementation error
     - `VIEWPORT` uniform semantic has no corresponding value `VEC4`
         - Not sure if model error or implementation error
-- box-animated.gltf sample model
+
+
+- `box-animated.gltf` sample model
+
     - Animation `TIME` input has different number of elements across `translation` and `rotation` paths and causes animation delay
         - Not sure if model error or implementation error
         - Referenced in [Issue #574](https://github.com/KhronosGroup/glTF/issues/573) and [Issue #569](https://github.com/KhronosGroup/glTF/issues/569)
-- monster.gltf sample model
+
+
+- `monster.gltf` sample model
+
     - scale and position do not seem right
         - Not sure if model error or implementation error
-- brainsteam.gltf sample model
+
+
+- `brainsteam.gltf` sample model
+
     - Animation doesn't seem quite right, pistons in right arm are popping out, shoulders are skewing, etc
         - Not sure if model error or implementation error
-- vc.gltf sample model
+
+
+- `vc.gltf` sample model
+
     - Erroneous 'cubes' are being rendered and cars / train orientations do not seem to be correct
         - Not sure if model error or implementation error
+        - Referenced in [Issue #556](https://github.com/KhronosGroup/glTF/issues/556) and [Issue #576](https://github.com/KhronosGroup/glTF/issues/576)
     - Car and train orientations do not seem to be correct
         - Not sure if model error or implementation error
