@@ -2,15 +2,17 @@
 
     'use strict';
 
+    var $ = require('jquery');
     var glm = require('gl-matrix');
     var context = require('./scripts/render/gl');
     var glTFLoader = require('./scripts/glTFLoader');
     var Debug = require('./scripts/render/Debug');
 
-    var MODEL_NAME = 'vc';
+    var model;
+    var models;
 
     var gl;
-    var origin;
+    var origin = glm.mat4.create();
     var scene;
     var view;
     var projection;
@@ -48,18 +50,20 @@
     }
 
     function render() {
-        // get timestamp
-        time = ( Date.now() - start ) / 1000;
-        // update view matrix based on camera position
-        view = scene.getGlobalViewMatrix( time );
-        // get projection matrix
-        projection = scene.getProjectionMatrix();
-        // render origin
-        Debug.renderNode( origin, view, projection );
-        // render scene
-        scene.nodes.forEach( function( node ) {
-            renderHierarchy( node );
-        });
+        if ( scene ) {
+            // get timestamp
+            time = ( Date.now() - start ) / 1000;
+            // update view matrix based on camera position
+            view = scene.getGlobalViewMatrix( time );
+            // get projection matrix
+            projection = scene.getProjectionMatrix();
+            // render origin
+            Debug.renderNode( origin, view, projection );
+            // render scene
+            scene.nodes.forEach( function( node ) {
+                renderHierarchy( node );
+            });
+        }
         // continue to next frame
     	requestAnimationFrame( render );
     }
@@ -70,34 +74,56 @@
         gl.viewport(0, 0, window.innerWidth, window.innerHeight );
     }
 
+    function loadModel( path ) {
+        // load and parse glTF model into runtime format
+        glTFLoader.load( path, function( err, gltf ) {
+            if ( err ) {
+                console.error( err );
+                return;
+            }
+            if ( scene ) {
+                scene.destroy();
+            }
+            // get scene instance
+            scene = gltf.scenes[ gltf.scene ].instance;
+        });
+    }
+
+    function changeModel( event ) {
+        var M_CODE = 109;
+        var modelIndex = models.indexOf( model );
+        if ( event.keyCode === M_CODE ) {
+            modelIndex = ( modelIndex + 1 ) % models.length;
+        }
+        model = models[ modelIndex ];
+        // load the model
+        loadModel( model );
+    }
+
     window.start = function() {
-
+        // get WebGL context
         gl = context();
-
         // only continue if WebGL is available
         if ( gl ) {
-
             // size the canvas according to the window
             resizeCanvas();
-
             // resize viewport on window resize
             window.addEventListener( 'resize', resizeCanvas );
-
-            glTFLoader.load('./models/' + MODEL_NAME + '/' + MODEL_NAME + '.gltf', function( err, gltf ) {
-                if ( err ) {
-                    console.error( err );
+            // get all models
+            $.get('/models', function( res ) {
+                if ( res.length === 0 ) {
+                    console.error( 'There are no models to render' );
                     return;
                 }
-
-                // get scene instance
-                scene = gltf.scenes[ gltf.scene ].instance;
-
-                // create origin matrix
-                origin = glm.mat4.create();
-
+                models = res;
+                model = models[0];
+                // add model change listener
+                window.addEventListener( 'keypress', changeModel );
+                // load the model
+                loadModel( model );
+                // start rendering
                 render();
             });
-
         }
     };
 

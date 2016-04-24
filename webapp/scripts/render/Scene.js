@@ -6,6 +6,7 @@
     var Node = require('./Node');
     var Camera = require('./Camera');
 
+    var C_KEYCODE = 99;
     var DEFAULT_DISTANCE = 10;
     var MAX_DISTANCE = DEFAULT_DISTANCE * 10;
     var MIN_DISTANCE = DEFAULT_DISTANCE / 10;
@@ -13,7 +14,7 @@
     var X_FACTOR = -0.1;
     var Y_FACTOR = -0.2;
 
-    function addMouseControls( node ) {
+    function addMouseControls( scene, node ) {
 
         var last;
         var down;
@@ -28,7 +29,8 @@
         var translation = glm.vec3.create();
         var rotation = glm.mat4.create();
 
-        window.onmousedown = function( event ) {
+
+        scene.mousedown = function( event ) {
             last = {
                 x: event.screenX,
                 y: event.screenY
@@ -36,7 +38,7 @@
             down = true;
         };
 
-        window.onmousemove = function( event ) {
+        scene.mousemove = function( event ) {
             if ( down ) {
                 var pos = {
                     x: event.screenX,
@@ -100,7 +102,7 @@
             }
         };
 
-        window.onwheel = function( event ) {
+        scene.wheel = function( event ) {
             distance += ( event.deltaY * SCROLL_FACTOR * MAX_DISTANCE );
             distance = Math.min( Math.max( distance, MIN_DISTANCE ), MAX_DISTANCE );
             var matrix = node.matrix;
@@ -116,17 +118,25 @@
             matrix[14] = translation[2];
         };
 
-        window.onmouseup = function() {
+        scene.mouseup =  function() {
             down = false;
         };
+
+        window.addEventListener( 'mousedown', scene.mousedown );
+        window.addEventListener( 'mousemove', scene.mousemove );
+        window.addEventListener( 'wheel', scene.wheel );
+        window.addEventListener( 'mouseup', scene.mouseup );
     }
 
     function addCameraChangeControls( scene ) {
         var current = 0;
-        document.onkeypress = function() {
-            current = (current+1) % scene.cameraNodes.length;
-            scene.activeCameraNode = scene.cameraNodes[current];
+        scene.keypress = function( event ) {
+            if ( event.keyCode === C_KEYCODE ) {
+                current = ( current + 1 ) % scene.cameraNodes.length;
+                scene.activeCameraNode = scene.cameraNodes[current];
+            }
         };
+        window.addEventListener( 'keypress', scene.keypress );
     }
 
     function Scene( args ) {
@@ -139,7 +149,7 @@
             });
             this.cameraNodes.push( camera );
             this.nodes.push( camera );
-            addMouseControls( camera );
+            addMouseControls( this, camera );
         } else {
             addCameraChangeControls( this );
         }
@@ -152,6 +162,24 @@
 
     Scene.prototype.getProjectionMatrix = function() {
         return this.activeCameraNode.camera.getProjectionMatrix();
+    };
+
+    Scene.prototype.destroy = function() {
+        if ( this.mousedown ) {
+            window.removeEventListener( 'mousedown', this.mousedown );
+        }
+        if ( this.mousemove ) {
+            window.removeEventListener( 'mousemove', this.mousemove );
+        }
+        if ( this.wheel ) {
+            window.removeEventListener( 'wheel', this.wheel );
+        }
+        if ( this.mouseup ) {
+            window.removeEventListener( 'mouseup', this.mouseup );
+        }
+        if ( this.keypress ) {
+            window.removeEventListener( 'keypress', this.keypress );
+        }
     };
 
     module.exports = Scene;

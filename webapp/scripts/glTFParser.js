@@ -94,13 +94,13 @@
                     var category = json[categoryId];
                     Object.keys(category).map( function(key) {
                         tasks.push( function(done) {
-                            //console.log('Loading ' + categoryId + ': ' + key);
+                            console.log('Loading ' + categoryId + ': ' + key);
                             handler(json, category[key], done);
                         });
                     });
                 }
             });
-            //console.log('Loading dependency group', JSON.stringify(categoryIds));
+            console.log('Loading dependency group', JSON.stringify(categoryIds));
             // execute all categories within the same dependency level
             // in parallel
             Async.parallel( tasks, done );
