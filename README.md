@@ -34,6 +34,7 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
 
     - `modelInverseTransposeMatrix` uniform is of type `MODELINVERSETRANSPOSE` which should have corresponding type of `FLOAT_MAT3`, however type is `FLOAT_MAT4`
         - Not sure if model error or implementation error
+        - Referenced in [Issue #556](https://github.com/KhronosGroup/glTF/issues/556)
     - `VIEWPORT` uniform semantic has no corresponding value `VEC4`
         - Not sure if model error or implementation error
 
