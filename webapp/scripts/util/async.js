@@ -1,14 +1,36 @@
+/**
+ * Copyright (c) 2010-2016 Caolan McMahon
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 (function(){
 
     'use strict';
 
     function noop() {}
 
-    function _setImmediate(fn) {
+    function setImmediate(fn) {
         setTimeout(fn, 0);
     }
 
-    function _parallel(eachfn, tasks, callback) {
+    function parallel(eachfn, tasks, callback) {
         callback = callback || noop;
         var results = Array.isArray(tasks) ? [] : {};
         eachfn(tasks, function( task, key, callback ) {
@@ -21,7 +43,7 @@
         });
     }
 
-    function _once(fn) {
+    function once(fn) {
         return function() {
             if (fn === null) {
                 return;
@@ -31,7 +53,7 @@
         };
     }
 
-    function _keyIterator(coll) {
+    function keyIterator(coll) {
         var i = -1;
         var len;
         var keys;
@@ -51,7 +73,7 @@
         }
     }
 
-    var _eachOf = function (object, iterator, callback) {
+    var eachOf = function (object, iterator, callback) {
         var key, completed = 0;
 
         function done(err) {
@@ -66,30 +88,29 @@
             }
         }
 
-        callback = _once(callback || noop);
+        callback = once(callback || noop);
         object = object || [];
-        var iter = _keyIterator(object);
+        var iter = keyIterator(object);
         while ((key = iter()) !== null) {
             completed += 1;
-            iterator(object[key], key, _once(done));
+            iterator(object[key], key, once(done));
         }
         if (completed === 0) {
             callback(null);
         }
     };
 
-
-    var _eachOfSeries = function (obj, iterator, callback) {
-        callback = _once(callback || noop);
+    var eachOfSeries = function (obj, iterator, callback) {
+        callback = once(callback || noop);
         obj = obj || [];
-        var nextKey = _keyIterator(obj);
+        var nextKey = keyIterator(obj);
         var key = nextKey();
         function iterate() {
             var sync = true;
             if (key === null) {
                 return callback(null);
             }
-            iterator(obj[key], key, _once(function (err) {
+            iterator(obj[key], key, once(function (err) {
                 if (err) {
                     callback(err);
                 }
@@ -99,7 +120,7 @@
                         return callback(null);
                     } else {
                         if (sync) {
-                            _setImmediate(iterate);
+                            setImmediate(iterate);
                         } else {
                             iterate();
                         }
@@ -114,11 +135,11 @@
     module.exports = {
 
         parallel: function( tasks, callback ) {
-            _parallel(_eachOf, tasks, callback);
+            parallel(eachOf, tasks, callback);
         },
 
         series: function( tasks, callback ) {
-            _parallel(_eachOfSeries, tasks, callback);
+            parallel(eachOfSeries, tasks, callback);
         }
 
     };

@@ -19,8 +19,6 @@
         this.type = args.type;
         this.texture = gl.createTexture();
         gl.bindTexture( this.target, this.texture );
-        // premultiply alpha
-        //gl.pixelStorei( gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true );
         // buffer the texture
         gl.texImage2D(
             this.target,
@@ -30,7 +28,7 @@
             this.type,
             args.image );
         // generate mip-maps if using a mip-mapping min filter
-        if ( MIPMAP_MIN_FILTERS[args.sampler.minFilter] ) {
+        if ( MIPMAP_MIN_FILTERS[ args.sampler.minFilter ] ) {
             gl.generateMipmap( this.target );
         }
         // set sampler parameters

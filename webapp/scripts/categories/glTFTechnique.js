@@ -7,14 +7,6 @@
     module.exports = function( gltf, description, done ) {
         // get shader instance
         var shader = gltf.programs[ description.program ].instance;
-        // attach node instances to relevant params
-        // Object.keys( description.parameters ).map(function(key) {
-        //     // TODO: dependency cycle...
-        //     var parameter = description.parameters[key];
-        //     if ( parameter.node ) {
-        //         parameter.node = gltf.nodes[ parameter.node ].instance;
-        //     }
-        // });
         // convert uniforms to array of the values
         var uniforms = Object.keys( description.uniforms ).map( function( name ) {
             var id = description.uniforms[ name ];
