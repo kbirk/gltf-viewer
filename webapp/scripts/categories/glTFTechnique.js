@@ -13,6 +13,9 @@
             var parameter = description.parameters[ id ];
             parameter.name = name;
             parameter.id = id;
+            if ( Array.isArray( parameter.value ) ) {
+                parameter.value = new Float32Array( parameter.value );
+            }
             return parameter;
         });
         // convert state function to array

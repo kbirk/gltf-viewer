@@ -26,7 +26,10 @@
         // hierarchy
         this.parent = null;
         this.children = [];
-
+        // matrix
+        this.localMatrix = glm.mat4.create();
+        this.globalMatrix = glm.mat4.create();
+        this.jointMatrix = glm.mat4.create();
     }
 
     Node.prototype.addChild = function( node ) {
@@ -42,49 +45,32 @@
     };
 
     Node.prototype.getMatrix = function( time ) {
-        var matrix;
         if ( this.matrix ) {
-            matrix = glm.mat4.clone( this.matrix );
+            glm.mat4.copy( this.localMatrix, this.matrix );
         } else if ( this.animations ) {
-            matrix = this.getAnimation().getPose( this, time );
+            this.getAnimation().getPose( this.localMatrix, this, time );
         } else {
-            matrix = glm.mat4.create();
+            glm.mat4.identity( this.localMatrix );
         }
-        return matrix;
+        return this.localMatrix;
     };
 
     Node.prototype.getGlobalMatrix = function( time ) {
-        var matrix = this.getMatrix( time );
+        glm.mat4.copy( this.globalMatrix, this.getMatrix( time ) );
         if ( this.parent ) {
             var parentMatrix = this.parent.getGlobalMatrix( time );
-            glm.mat4.multiply( matrix, parentMatrix, matrix );
+            glm.mat4.multiply( this.globalMatrix, parentMatrix, this.globalMatrix );
         }
-        return matrix;
+        return this.globalMatrix;
     };
 
     Node.prototype.getJointMatrix = function( time ) {
-        var matrix = this.getMatrix( time );
+        glm.mat4.copy( this.jointMatrix, this.getMatrix( time ) );
         if ( this.parent && this.parent.jointName ) {
             var parentMatrix = this.parent.getJointMatrix( time );
-            glm.mat4.multiply( matrix, parentMatrix, matrix );
+            glm.mat4.multiply( this.jointMatrix, parentMatrix, this.jointMatrix );
         }
-        return matrix;
-    };
-
-    Node.prototype.getGlobalViewMatrix = function( time ) {
-        var globalMatrix = this.getGlobalMatrix( time );
-        var x = glm.vec3.fromValues( globalMatrix[0], globalMatrix[1], globalMatrix[2] );
-        var y = glm.vec3.fromValues( globalMatrix[4], globalMatrix[5], globalMatrix[6] );
-        var z = glm.vec3.fromValues( globalMatrix[8], globalMatrix[9], globalMatrix[10] );
-        var t = glm.vec3.fromValues( -globalMatrix[12], -globalMatrix[13], -globalMatrix[14] );
-        glm.vec3.normalize( x, x );
-        glm.vec3.normalize( y, y );
-        glm.vec3.normalize( z, z );
-        return glm.mat4.fromValues(
-            x[0], y[0], z[0], 0,
-            x[1], y[1], z[1], 0,
-            x[2], y[2], z[2], 0,
-            glm.vec3.dot( t, x ), glm.vec3.dot( t, y ), glm.vec3.dot( t, z ), 1 );
+        return this.jointMatrix;
     };
 
     module.exports = Node;

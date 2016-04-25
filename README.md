@@ -24,7 +24,7 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
 
 ## To-Do
 
-- reduce Float32Array allocations
+- fix animation, currentlly only animates between 0 -> N frames, ignoring N -> 0 interpolation.
 - add support for binary glb files
 - add support for embedded gltf files  
 
@@ -48,7 +48,7 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
 
 - `monster.gltf` sample model
 
-    - scale and position do not seem right
+    - scale does not seem right, abnormally large compared to other sample models
         - Not sure if model error or implementation error
 
 

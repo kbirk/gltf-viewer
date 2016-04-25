@@ -27,30 +27,38 @@
         scissor: [ 0, 0, 0, 0 ]
     };
 
+    var mult2Out = glm.mat4.create();
+    var mult3Out = glm.mat4.create();
+    var invertOut = glm.mat4.create();
+
+    var transposeInverseOut = glm.mat3.create();
+    var multInverseOutA = glm.mat3.create();
+    var multInverseOutB = glm.mat3.create();
+    var multInverseTransposeOut = glm.mat3.create();
+
     function mult2( a, b ) {
-        return glm.mat4.multiply( glm.mat4.create(), a, b );
+        return glm.mat4.multiply( mult2Out, a, b );
     }
 
     function mult3( a, b, c ) {
-        var out = glm.mat4.create();
-        glm.mat4.multiply( out, a, b );
-        return glm.mat4.multiply( out, out, c );
+        glm.mat4.multiply( mult3Out, a, b );
+        return glm.mat4.multiply( mult3Out, mult3Out, c );
     }
 
     function invert( mat ) {
-        return glm.mat4.invert( glm.mat4.create(), mat );
+        return glm.mat4.invert( invertOut, mat );
     }
 
     function transposeInverse( mat ) {
-        var out = glm.mat3.fromMat4( glm.mat3.create(), mat );
+        var out = glm.mat3.fromMat4( transposeInverseOut, mat );
         glm.mat3.invert( out, mat );
         return glm.mat3.transpose( out, out );
     }
 
     function multInverseTranspose( view, model ) {
-        var view3 = glm.mat3.fromMat4( glm.mat3.create(), view );
-        var model3 = glm.mat3.fromMat4( glm.mat3.create(), model );
-        return transposeInverse( glm.mat3.multiply( glm.mat3.create(), view3, model3 ) );
+        var view3 = glm.mat3.fromMat4( multInverseOutA, view );
+        var model3 = glm.mat3.fromMat4( multInverseOutB, model );
+        return transposeInverse( glm.mat3.multiply( multInverseTransposeOut, view3, model3 ) );
     }
 
     function Technique( args ) {

@@ -3,6 +3,7 @@
     'use strict';
 
     var glm = require('gl-matrix');
+    var Stats = require('stats.js');
     var context = require('./scripts/render/gl');
     var glTFLoader = require('./scripts/glTFLoader');
     var Debug = require('./scripts/render/Debug');
@@ -10,6 +11,8 @@
 
     var model;
     var models;
+
+    var stats;
 
     var gl;
     var origin = glm.mat4.create();
@@ -46,6 +49,7 @@
 
     function render() {
         if ( scene ) {
+            stats.begin();
             // get timestamp
             time = ( Date.now() - start ) / 1000;
             // update view matrix based on camera position
@@ -58,6 +62,7 @@
             scene.nodes.forEach( function( node ) {
                 renderHierarchy( node );
             });
+            stats.end();
         }
         // continue to next frame
     	requestAnimationFrame( render );
@@ -96,6 +101,12 @@
         }
     }
 
+    function addStats() {
+        stats = new Stats();
+        //stats.showPanel( 0 );
+        document.body.appendChild( stats.dom );
+    }
+
     window.start = function() {
         // get WebGL context
         gl = context();
@@ -120,6 +131,8 @@
                     window.addEventListener( 'keypress', changeModel );
                     // load the model
                     loadModel( model );
+                    // add stats element
+                    addStats();
                     // start rendering
                     render();
                 },
