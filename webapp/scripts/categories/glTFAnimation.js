@@ -3,6 +3,7 @@
     'use strict';
 
     var Animation = require('../render/Animation');
+    var Tree = require('../util/BST');
 
     var NUM_COMPONENTS = {
         'SCALAR': 1,
@@ -34,7 +35,7 @@
     module.exports = function( gltf, description, done ) {
         // get parameter accessors
         var parameters = description.parameters;
-        Object.keys( parameters ).forEach( function(key) {
+        Object.keys( parameters ).forEach( function( key ) {
             var accessor = gltf.accessors[ parameters[key] ];
             var bufferView = gltf.bufferViews[ accessor.bufferView ];
             var arraybuffer = getArrayBufferView( accessor, bufferView );
@@ -46,7 +47,9 @@
                 var sub = arraybuffer.subarray( i, i + numComponents );
                 values.push( ( sub.length === 1 ) ? sub[0] : sub );
             }
-            parameters[ key ] = values;
+            parameters[ key ] = {
+                values: values
+            };
         });
         // create animation and attach to relevant nodes
         description.channels.forEach( function( channel ) {
@@ -61,10 +64,18 @@
             }
             // add sampler info under the animation path
             var sampler = description.samplers[ channel.sampler ];
+            // get output
+            var output = parameters[ target.path ];
+            // get input
+            var input = parameters[ sampler.input ];
+            // index input values as BST
+            if ( !input.instance ) {
+                input.instance = new Tree( input.values );
+            }
             // add channel to animation
             node.animations[ key ].addChannel( target.path, {
-                input: parameters[ sampler.input ],
-                values: parameters[ target.path ],
+                input: input.instance,
+                values: output.values,
                 interpolation: sampler.interpolation
             });
         });

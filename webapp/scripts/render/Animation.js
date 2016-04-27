@@ -7,43 +7,18 @@
     var translationOut = glm.vec3.create();
     var scaleOut = glm.vec3.create();
 
-    function findKeyFrame( time, frames ) {
-        var len = frames.length;
-        var last = frames[ len - 1 ];
-        var mod = time % last;
-        var half = Math.floor( len / 2 );
-        var i = half;
-        var frame;
-        var j;
-        while ( half !== 1 ) {
-            frame = frames[i];
-            half = Math.round( half / 2 );
-            if ( frame > mod ) {
-                i -= half;
-            } else {
-                i += half;
-            }
-        }
-        // clamp off by one error in binary search
-        // TODO: fix this?
-        i = Math.max( 0, Math.min( i, len - 1 ) );
-        frame = frames[i];
-        if ( frame > mod ) {
-            j = i;
-            i -= 1;
-        } else {
-            j = ( i + 1 ) % len;
-        }
-        if ( mod < frames[i] || mod > frames[j] ) {
-            // time is outside of a frame, ignore
+    function findKeyFrame( time, input ) {
+        var mod = time % input.max;
+        var frames = input.search( mod );
+        if ( !frames ) {
             return null;
         }
-        var t0 = frames[ i ];
-        var t1 = frames[ j ];
+        var t0 = frames.from.value;
+        var t1 = frames.to.value;
         var range = ( t1 - t0 );
         return {
-            from: i,
-            to: j,
+            from: frames.from.index,
+            to: frames.to.index,
             t: ( mod - t0 ) / range
         };
     }

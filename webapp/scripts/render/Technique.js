@@ -143,7 +143,7 @@
             default:
                 if ( uniform.value !== undefined ) {
                     this.shader.setUniform( uniform, uniform.value );
-                } else {
+                } else if ( material.values[ uniform.id ] !== undefined ) {
                     this.shader.setUniform( uniform, material.values[ uniform.id ] );
                 }
                 break;

@@ -23,10 +23,10 @@
         35668: 'uniform3iv',
         35669: 'uniform4iv',
         // bvec
-        // 35670: 'uniform2bv',
-        // 35671: 'uniform2bv',
-        // 35672: 'uniform2bv',
-        // 35673: 'uniform2bv',
+        35670: 'uniform1i',
+        35671: 'uniform2iv',
+        35672: 'uniform3iv',
+        35673: 'uniform4iv',
         // mat
         35674: 'uniformMatrix2fv',
         35675: 'uniformMatrix3fv',
