@@ -35,7 +35,6 @@
         if ( start > end ) {
             return null;
         }
-        // same as (start+end)/2, avoids overflow.
         var mid = Math.floor( start + ( end - start ) / 2 );
         var node = new Node( arr[ mid ], mid );
         node.less = createTree( arr, start, mid - 1 );

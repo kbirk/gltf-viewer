@@ -4,7 +4,7 @@ A minimalistic importer and renderer for the [Khronos glTF 1.0 format](https://g
 
 ## Motivation
 
-I really like the the glTF format. While attempting to familiarize myself with the specification I had difficulty finding any reference implementation that didn't shoehorn the model into an existing framework. This is my attempt at creating a bare bones feature complete importer and renderer.
+I really like the the glTF format. While attempting to familiarize myself with the specification I had difficulty finding any reference implementation that didn't involve incorporating an existing frameworks internal representation. This is my attempt at creating a bare bones feature complete importer and renderer.
 
 ## Usage
 
@@ -20,11 +20,11 @@ Run the development server:
 gulp
 ```
 
-Set your browser to `http://localhost:8080`. The application will serve any gltf files found in the `webapp/models` directory.
+Set your browser to `http://localhost:8080`. The application will serve any glTF files found in the `webapp/models` directory.
 
 ## To-Do
 
-- fix animation, currentlly only animates between 0 -> N frames, ignoring N -> 0 interpolation.
+- fix ambiguity in animation implementation
 - add support for binary glb files
 - add support for embedded gltf files  
 
@@ -52,16 +52,10 @@ Set your browser to `http://localhost:8080`. The application will serve any gltf
         - Not sure if model error or implementation error
 
 
-- `brainsteam.gltf` sample model
-
-    - Animation doesn't seem quite right, pistons in right arm are popping out, shoulders are skewing, etc
-        - Not sure if model error or implementation error
-
-
 - `vc.gltf` sample model
 
     - Erroneous 'cubes' are being rendered and cars / train orientations do not seem to be correct
         - Not sure if model error or implementation error
         - Referenced in [Issue #556](https://github.com/KhronosGroup/glTF/issues/556) and [Issue #576](https://github.com/KhronosGroup/glTF/issues/576)
-    - Car and train orientations do not seem to be correct
+    - Car and train orientations are not correct, animations only contain translation channel.
         - Not sure if model error or implementation error
