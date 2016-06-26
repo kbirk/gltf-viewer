@@ -33,7 +33,7 @@
     function parallel(eachfn, tasks, callback) {
         callback = callback || noop;
         var results = Array.isArray(tasks) ? [] : {};
-        eachfn(tasks, function( task, key, callback ) {
+        eachfn(tasks, function(task, key, callback) {
             task(function (err, res) {
                 results[key] = res;
                 callback(err);
@@ -134,11 +134,11 @@
 
     module.exports = {
 
-        parallel: function( tasks, callback ) {
+        parallel: function(tasks, callback) {
             parallel(eachOf, tasks, callback);
         },
 
-        series: function( tasks, callback ) {
+        series: function(tasks, callback) {
             parallel(eachOfSeries, tasks, callback);
         }
 

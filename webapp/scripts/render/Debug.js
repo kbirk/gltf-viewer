@@ -33,11 +33,11 @@
 
     var initialized = false;
 
-    function initVertexBuffer( data ) {
+    function initVertexBuffer(data) {
         var gl = context();
         var buffer = gl.createBuffer();
-        gl.bindBuffer( gl.ARRAY_BUFFER, buffer );
-        gl.bufferData( gl.ARRAY_BUFFER, data, gl.STATIC_DRAW );
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         return new VertexBuffer({
             buffer: buffer,
             index: 0,
@@ -57,13 +57,13 @@
             'uniform highp mat4 uViewMatrix;',
             'uniform highp mat4 uProjectionMatrix;',
             'void main() {',
-                'gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4( aVertexPosition, 1.0 );',
+                'gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPosition, 1.0);',
             '}'
         ].join('\n');
         var frag = [
             'uniform highp vec3 uColor;',
             'void main() {',
-                'gl_FragColor = vec4( uColor, 1.0 );',
+                'gl_FragColor = vec4(uColor, 1.0);',
             '}'
         ].join('\n');
         var attributes = [
@@ -77,37 +77,37 @@
     }
 
     function init() {
-        x = initVertexBuffer( new Float32Array([ 0, 0, 0, 1, 0, 0 ]) );
-        y = initVertexBuffer( new Float32Array([ 0, 0, 0, 0, 1, 0 ]) );
-        z = initVertexBuffer( new Float32Array([ 0, 0, 0, 0, 0, 1 ]) );
+        x = initVertexBuffer(new Float32Array([ 0, 0, 0, 1, 0, 0 ]));
+        y = initVertexBuffer(new Float32Array([ 0, 0, 0, 0, 1, 0 ]));
+        z = initVertexBuffer(new Float32Array([ 0, 0, 0, 0, 0, 1 ]));
         shader = initShader();
         initialized = true;
     }
 
     module.exports = {
 
-        renderNode: function( model, view, projection ) {
-            if ( !initialized ) {
+        renderNode: function(model, view, projection) {
+            if (!initialized) {
                 init();
             }
             // use shader
             shader.use();
             // transform matrices
-            shader.setUniform( uModelMatrix, model );
-            shader.setUniform( uViewMatrix, view );
-            shader.setUniform( uProjectionMatrix, projection );
+            shader.setUniform(uModelMatrix, model);
+            shader.setUniform(uViewMatrix, view);
+            shader.setUniform(uProjectionMatrix, projection);
             // draw x-axis
-            shader.setUniform( uColor, red );
+            shader.setUniform(uColor, red);
             x.bind();
             x.draw();
             x.unbind();
             // draw y-axis
-            shader.setUniform( uColor, green );
+            shader.setUniform(uColor, green);
             y.bind();
             y.draw();
             y.unbind();
             // draw z-axis
-            shader.setUniform( uColor, blue );
+            shader.setUniform(uColor, blue);
             z.bind();
             z.draw();
             z.unbind();

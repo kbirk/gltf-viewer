@@ -4,16 +4,16 @@
 
     var ImageLoader = require('../util/ImageLoader');
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         // load image
         ImageLoader.load({
             url: description.uri,
-            success: function( image ) {
+            success: function(image) {
                 description.image = image;
-                done( null );
+                done(null);
             },
-            error: function( err ) {
-                done( err );
+            error: function(err) {
+                done(err);
             }
         });
     };

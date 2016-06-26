@@ -4,7 +4,7 @@
 
     var context = require('./gl');
 
-    function IndexBuffer( args ) {
+    function IndexBuffer(args) {
         this.gl = context();
         this.buffer = args.buffer;
         this.type = args.type;
@@ -15,8 +15,8 @@
 
     IndexBuffer.prototype.draw = function() {
         var gl = this.gl;
-        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.buffer );
-        gl.drawElements( this.mode, this.count, this.type, this.byteOffset );
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer);
+        gl.drawElements(this.mode, this.count, this.type, this.byteOffset);
     };
 
     module.exports = IndexBuffer;

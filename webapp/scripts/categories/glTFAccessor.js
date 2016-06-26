@@ -12,9 +12,9 @@
         'MAT4': 16
     };
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         description.size = NUM_COMPONENTS[ description.type ];
-        done( null );
+        done(null);
     };
 
 }());

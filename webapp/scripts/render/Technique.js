@@ -27,32 +27,32 @@
         scissor: [ 0, 0, 0, 0 ]
     };
 
-    function mult2( a, b ) {
-        return glm.mat4.multiply( glm.mat4.create(), a, b );
+    function mult2(a, b) {
+        return glm.mat4.multiply(glm.mat4.create(), a, b);
     }
 
-    function mult3( a, b, c ) {
-        var out = glm.mat4.multiply( glm.mat4.create(), a, b );
-        return glm.mat4.multiply( out, out, c );
+    function mult3(a, b, c) {
+        var out = glm.mat4.multiply(glm.mat4.create(), a, b);
+        return glm.mat4.multiply(out, out, c);
     }
 
-    function invert( mat ) {
-        return glm.mat4.invert( glm.mat4.create(), mat );
+    function invert(mat) {
+        return glm.mat4.invert(glm.mat4.create(), mat);
     }
 
-    function transposeInverse( mat ) {
-        var out = glm.mat3.fromMat4( glm.mat3.create(), mat );
-        glm.mat3.invert( out, mat );
-        return glm.mat3.transpose( out, out );
+    function transposeInverse(mat) {
+        var out = glm.mat3.fromMat4(glm.mat3.create(), mat);
+        glm.mat3.invert(out, mat);
+        return glm.mat3.transpose(out, out);
     }
 
-    function multInverseTranspose( view, model ) {
-        var view3 = glm.mat3.fromMat4( glm.mat3.create(), view );
-        var model3 = glm.mat3.fromMat4( glm.mat3.create(), model );
-        return transposeInverse( glm.mat3.multiply( glm.mat3.create(), view3, model3 ) );
+    function multInverseTranspose(view, model) {
+        var view3 = glm.mat3.fromMat4(glm.mat3.create(), view);
+        var model3 = glm.mat3.fromMat4(glm.mat3.create(), model);
+        return transposeInverse(glm.mat3.multiply(glm.mat3.create(), view3, model3));
     }
 
-    function Technique( args ) {
+    function Technique(args) {
         this.gl = context();
         this.shader = args.shader;
         this.attributes = args.attributes;
@@ -66,97 +66,97 @@
         // use shader
         this.shader.use();
         // enables
-        this.enables.forEach( function( state ) {
-            gl.enable( state );
+        this.enables.forEach(function(state) {
+            gl.enable(state);
         });
         // functions
-        this.functions.forEach( function( func ) {
-            gl[ func.name ].apply( gl, func.values );
+        this.functions.forEach(function(func) {
+            gl[ func.name ].apply(gl, func.values);
         });
         // reset texture unit
         this.textureUnit = 0;
     };
 
-    Technique.prototype.setUniform = function( uniform, node, material, view, projection, time ) {
-        if ( uniform.node ) {
+    Technique.prototype.setUniform = function(uniform, node, material, view, projection, time) {
+        if (uniform.node) {
             node = uniform.node;
         }
-        switch ( uniform.semantic || UNIFORM_TYPES[ uniform.type ] ) {
+        switch (uniform.semantic || UNIFORM_TYPES[ uniform.type ]) {
             case 'SAMPLER_2D':
-                material.values[ uniform.id ].bind( this.textureUnit );
-                this.shader.setUniform( uniform, this.textureUnit++ );
+                material.values[ uniform.id ].bind(this.textureUnit);
+                this.shader.setUniform(uniform, this.textureUnit++);
                 break;
             case 'LOCAL':
-                this.shader.setUniform( uniform, node.getMatrix( time ) );
+                this.shader.setUniform(uniform, node.getMatrix(time));
                 break;
             case 'MODEL':
-                this.shader.setUniform( uniform, node.getGlobalMatrix( time ) );
+                this.shader.setUniform(uniform, node.getGlobalMatrix(time));
                 break;
             case 'VIEW':
-                this.shader.setUniform( uniform, view );
+                this.shader.setUniform(uniform, view);
                 break;
             case 'PROJECTION':
-                this.shader.setUniform( uniform, projection );
+                this.shader.setUniform(uniform, projection);
                 break;
             case 'MODELVIEW':
-                this.shader.setUniform( uniform, mult2( view, node.getGlobalMatrix( time ) ) );
+                this.shader.setUniform(uniform, mult2(view, node.getGlobalMatrix(time)));
                 break;
             case 'MODELVIEWPROJECTION':
-                this.shader.setUniform( uniform, mult3( projection, view, node.getGlobalMatrix( time ) ) );
+                this.shader.setUniform(uniform, mult3(projection, view, node.getGlobalMatrix(time)));
                 break;
             case 'MODELINVERSE':
-                this.shader.setUniform( uniform, invert( node.getGlobalMatrix( time ) ) );
+                this.shader.setUniform(uniform, invert(node.getGlobalMatrix(time)));
                 break;
             case 'VIEWINVERSE':
-                this.shader.setUniform( uniform, invert( view ) );
+                this.shader.setUniform(uniform, invert(view));
                 break;
             case 'PROJECTIONINVERSE':
-                this.shader.setUniform( uniform, invert( projection ) );
+                this.shader.setUniform(uniform, invert(projection));
                 break;
             case 'MODELVIEWINVERSE':
-                this.shader.setUniform( uniform, invert( mult2( view, node.getGlobalMatrix( time ) ) ) );
+                this.shader.setUniform(uniform, invert(mult2(view, node.getGlobalMatrix(time))));
                 break;
             case 'MODELVIEWPROJECTIONINVERSE':
-                this.shader.setUniform( uniform, invert( mult3( projection, view, node.getGlobalMatrix( time ) ) ) );
+                this.shader.setUniform(uniform, invert(mult3(projection, view, node.getGlobalMatrix(time))));
                 break;
             case 'MODELINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, transposeInverse( node.getGlobalMatrix( time ) ) );
+                this.shader.setUniform(uniform, transposeInverse(node.getGlobalMatrix(time)));
                 break;
             case 'MODELVIEWINVERSETRANSPOSE':
-                this.shader.setUniform( uniform, multInverseTranspose( view, node.getGlobalMatrix( time ) ) );
+                this.shader.setUniform(uniform, multInverseTranspose(view, node.getGlobalMatrix(time)));
                 break;
             case 'VIEWPORT':
                 // Not implemented currently
                 break;
             case 'JOINTMATRIX':
-                this.shader.setUniform( uniform, node.skin.getJointArray( time ) );
+                this.shader.setUniform(uniform, node.skin.getJointArray(time));
                 break;
             default:
-                if ( uniform.value !== undefined ) {
-                    this.shader.setUniform( uniform, uniform.value );
-                } else if ( material.values[ uniform.id ] !== undefined ) {
-                    this.shader.setUniform( uniform, material.values[ uniform.id ] );
+                if (uniform.value !== undefined) {
+                    this.shader.setUniform(uniform, uniform.value);
+                } else if (material.values[ uniform.id ] !== undefined) {
+                    this.shader.setUniform(uniform, material.values[ uniform.id ]);
                 }
                 break;
         }
     };
 
-    Technique.prototype.setUniforms = function( node, material, view, projection, time ) {
+    Technique.prototype.setUniforms = function(node, material, view, projection, time) {
         var that = this;
-        this.uniforms.forEach( function( uniform ) {
-            that.setUniform( uniform, node, material, view, projection, time );
+        this.uniforms.forEach(function(uniform) {
+            that.setUniform(uniform, node, material, view, projection, time);
         });
     };
 
     Technique.prototype.disableState = function() {
         var gl = this.gl;
         // disables
-        this.enables.forEach( function( state ) {
-            gl.disable( state );
+        this.enables.forEach(function(state) {
+            gl.disable(state);
         });
         // restore defaults
-        this.functions.forEach( function( func ) {
-            gl[ func.name ].apply( gl, DEFAULT_FUNCTIONS[ func.name ] );
+        this.functions.forEach(function(func) {
+            gl[ func.name ].apply(gl, DEFAULT_FUNCTIONS[ func.name ]);
         });
     };
 

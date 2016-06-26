@@ -4,7 +4,7 @@
 
     var Camera = require('../render/Camera');
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         var projection = description[ description.type ];
         projection.type = description.type;
         // create instance
@@ -12,7 +12,7 @@
             projection: projection
         });
         // no-op
-        done( null );
+        done(null);
     };
 
 }());

@@ -36,14 +36,14 @@
     var gl;
 
     module.exports = function() {
-        if ( !loaded ) {
+        if (!loaded) {
             // get context
-            var canvas = document.getElementById( CANVAS_ID );
-            gl = canvas.getContext( 'webgl' ) || canvas.getContext( 'experimental-webgl' );
+            var canvas = document.getElementById(CANVAS_ID);
+            gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             // load extensions
-            if ( gl ) {
-                EXTENSIONS.forEach( function( ext ) {
-                    gl.getExtension( ext );
+            if (gl) {
+                EXTENSIONS.forEach(function(ext) {
+                    gl.getExtension(ext);
                 });
             }
             loaded = true;

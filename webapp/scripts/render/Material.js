@@ -2,7 +2,7 @@
 
     'use strict';
 
-    function Material( args ) {
+    function Material(args) {
         this.values = args.values;
     }
 

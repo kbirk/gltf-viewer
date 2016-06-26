@@ -39,10 +39,10 @@
     }
 
     function resolvePaths(json, baseURL) {
-        CATEGORIES_TO_RESOLVE.forEach( function(category) {
+        CATEGORIES_TO_RESOLVE.forEach(function(category) {
             var descriptions = json[category];
             if (descriptions) {
-                Object.keys(descriptions).forEach( function(key) {
+                Object.keys(descriptions).forEach(function(key) {
                     var description = descriptions[key];
                     // resolve and replace uri
                     description.uri = resolvePath(baseURL, description.uri);
@@ -54,8 +54,8 @@
 
     function getDependencyGroups(json) {
         var groups = [];
-        CATEGORY_DEP_ORDER.forEach( function(group) {
-            var filtered = group.filter( function(categoryId) {
+        CATEGORY_DEP_ORDER.forEach(function(group) {
+            var filtered = group.filter(function(categoryId) {
                 return (json[categoryId]) ? true : false;
             });
             if (filtered.length > 0) {
@@ -68,12 +68,12 @@
     function createParallelHandlers(json, categoryIds, handlers) {
         return function(done) {
             var tasks = [];
-            categoryIds.forEach( function(categoryId) {
+            categoryIds.forEach(function(categoryId) {
                 var handler = handlers[categoryId];
                 if (handler) {
                     var category = json[categoryId];
-                    Object.keys(category).map( function(key) {
-                        tasks.push( function(done) {
+                    Object.keys(category).map(function(key) {
+                        tasks.push(function(done) {
                             //console.log('Loading ' + categoryId + ': ' + key);
                             handler(json, category[key], done);
                         });
@@ -83,7 +83,7 @@
             //console.log('Loading dependency group', JSON.stringify(categoryIds));
             // execute all categories within the same dependency level
             // in parallel
-            Async.parallel( tasks, done );
+            Async.parallel(tasks, done);
         };
     }
 
@@ -91,7 +91,7 @@
         // get the category IDs that are in the glTF blob
         var groups = getDependencyGroups(json);
         // create batches for each dependency level
-        var batches = groups.map( function(categoryIds) {
+        var batches = groups.map(function(categoryIds) {
             // return a batch for each category dependency group
             return createParallelHandlers(json, categoryIds, handlers);
         });
@@ -114,7 +114,7 @@
                 success: function(json) {
                     parseJSON(resolvePaths(json, baseURL), handlers);
                 },
-                error: function( err ) {
+                error: function(err) {
                     handlers.error(err);
                 }
             });

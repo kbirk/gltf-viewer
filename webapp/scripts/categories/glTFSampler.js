@@ -2,9 +2,9 @@
 
     'use strict';
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         // no-op
-        done( null );
+        done(null);
     };
 
 }());

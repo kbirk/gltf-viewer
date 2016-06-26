@@ -22,9 +22,9 @@
 
     module.exports = {
 
-        load: function( url, callback ) {
+        load: function(url, callback) {
 
-            glTFParser.load( url, {
+            glTFParser.load(url, {
                 buffers: glTFBuffer,
                 images: glTFImage,
                 shaders: glTFShader,
@@ -41,11 +41,11 @@
                 animations: glTFAnimation,
                 materials: glTFMaterial,
                 scenes: glTFScene,
-                success: function( gltf ) {
-                    callback( null, gltf );
+                success: function(gltf) {
+                    callback(null, gltf);
                 },
-                error: function( err ) {
-                    callback( err );
+                error: function(err) {
+                    callback(err);
                 }
             });
         }

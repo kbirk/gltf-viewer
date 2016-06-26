@@ -4,7 +4,7 @@
 
     var Texture = require('../render/Texture');
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         // create instance
         description.instance = new Texture({
             internalFormat: description.internalFormat,
@@ -14,7 +14,7 @@
             image: gltf.images[ description.source ].image,
             sampler: gltf.samplers[ description.sampler ]
         });
-        done( null );
+        done(null);
     };
 
 }());

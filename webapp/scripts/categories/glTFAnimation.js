@@ -23,43 +23,43 @@
         5126: Float32Array
     };
 
-    function getArrayBufferView( accessor, bufferView ) {
+    function getArrayBufferView(accessor, bufferView) {
         var numComponents = NUM_COMPONENTS[ accessor.type ];
         var TypedArray = COMPONENT_TYPES[ accessor.componentType ];
         return new TypedArray(
             bufferView.source,
             accessor.byteOffset,
-            accessor.count * numComponents );
+            accessor.count * numComponents);
     }
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         // get parameter accessors
         var parameters = description.parameters;
-        Object.keys( parameters ).forEach( function( key ) {
+        Object.keys(parameters).forEach(function(key) {
             var accessor = gltf.accessors[ parameters[key] ];
             var bufferView = gltf.bufferViews[ accessor.bufferView ];
-            var arraybuffer = getArrayBufferView( accessor, bufferView );
+            var arraybuffer = getArrayBufferView(accessor, bufferView);
             var numComponents = NUM_COMPONENTS[ accessor.type ];
             var values = [];
             var i;
-            for ( i=0; i<accessor.count*numComponents; i+=numComponents ) {
+            for (i=0; i<accessor.count*numComponents; i+=numComponents) {
                 // get the subarray that composes the matrix
-                var sub = arraybuffer.subarray( i, i + numComponents );
-                values.push( ( sub.length === 1 ) ? sub[0] : sub );
+                var sub = arraybuffer.subarray(i, i + numComponents);
+                values.push((sub.length === 1) ? sub[0] : sub);
             }
             parameters[ key ] = {
                 values: values
             };
         });
         // create animation and attach to relevant nodes
-        description.channels.forEach( function( channel ) {
+        description.channels.forEach(function(channel) {
             var target = channel.target;
             // get the node for the channel
             var node = gltf.nodes[ target.id ].instance;
             var key = description.name || 'untitled';
             // create animations if they don't exist
             node.animations = node.animations || {};
-            if ( !node.animations[ key ] ) {
+            if (!node.animations[ key ]) {
                 node.animations[ key] = new Animation();
             }
             // add sampler info under the animation path
@@ -69,18 +69,18 @@
             // get input
             var input = parameters[ sampler.input ];
             // index input values as BST
-            if ( !input.instance ) {
-                input.instance = new Tree( input.values );
+            if (!input.instance) {
+                input.instance = new Tree(input.values);
             }
             // add channel to animation
-            node.animations[ key ].addChannel( target.path, {
+            node.animations[ key ].addChannel(target.path, {
                 input: input.instance,
                 values: output.values,
                 interpolation: sampler.interpolation
             });
         });
 
-        done( null );
+        done(null);
     };
 
 }());

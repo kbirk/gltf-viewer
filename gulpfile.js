@@ -1,4 +1,4 @@
-( function() {
+(function() {
 
     'use strict';
 
@@ -28,72 +28,72 @@
         ]
     };
 
-    function handleError( err ) {
-        console.log( err );
-        this.emit( 'end' );
+    function handleError(err) {
+        console.log(err);
+        this.emit('end');
     }
 
-    function bundle( bundler ) {
-        var watcher = watchify( bundler );
+    function bundle(bundler) {
+        var watcher = watchify(bundler);
         return watcher
-            .on( 'update', function( files ) {
+            .on('update', function(files) {
                 // When any files updates
-                console.log('\nWatch detected changes to [', files.join(', '), ']' );
+                console.log('\nWatch detected changes to [', files.join(', '), ']');
                 // lint changed files
-                var linting = gulp.src( files )
-                    .pipe( jshint('.jshintrc') )
-                    .pipe( jshint.reporter('jshint-stylish') );
+                var linting = gulp.src(files)
+                    .pipe(jshint('.jshintrc'))
+                    .pipe(jshint.reporter('jshint-stylish'));
                 // re-bundle
                 var bundling = watcher.bundle()
-                    .on( 'error', handleError )
-                    .pipe( source( project + '.js' ) )
-                    .pipe( gulp.dest( paths.build ) );
-                return merge( linting, bundling );
+                    .on('error', handleError)
+                    .pipe(source(project + '.js'))
+                    .pipe(gulp.dest(paths.build));
+                return merge(linting, bundling);
             })
             .bundle() // Create the initial bundle when starting the task
-            .on( 'error', handleError )
-            .pipe( source( project + '.js' ) )
-            .pipe( gulp.dest( paths.build ) );
+            .on('error', handleError)
+            .pipe(source(project + '.js'))
+            .pipe(gulp.dest(paths.build));
     }
 
-    gulp.task('clean', function( done ) {
-        del.sync( paths.build );
+    gulp.task('clean', function(done) {
+        del.sync(paths.build);
         done();
     });
 
     gulp.task('lint', function() {
-        return gulp.src( paths.scripts )
-            .pipe( jshint('.jshintrc') )
-            .pipe( jshint.reporter('jshint-stylish') );
+        return gulp.src(paths.scripts)
+            .pipe(jshint('.jshintrc'))
+            .pipe(jshint.reporter('jshint-stylish'));
     });
 
     gulp.task('build-scripts', function() {
-        var bundler = browserify( paths.root, {
+        var bundler = browserify(paths.root, {
             debug: true,
             standalone: project
         });
-        return bundle( bundler );
+        return bundle(bundler);
     });
 
     gulp.task('build-styles', function () {
-        return gulp.src( paths.styles )
-            .pipe( csso() )
-            .pipe( concat( project + '.css' ) )
-            .pipe( gulp.dest( paths.build ) );
+        return gulp.src(paths.styles)
+            .pipe(csso())
+            .pipe(concat(project + '.css'))
+            .pipe(gulp.dest(paths.build));
     });
 
     gulp.task('copy-resources', function() {
-        return gulp.src( paths.resources, {
+        return gulp.src(paths.resources, {
                 base: basePath
             })
-            .pipe( gulp.dest( paths.build ) );
+            .pipe(gulp.dest(paths.build));
     });
 
-    gulp.task('build', function( done ) {
+    gulp.task('build', function(done) {
         runSequence(
             [ 'clean', 'lint' ],
             [ 'build-scripts', 'build-styles', 'copy-resources' ],
-            done );
+            done);
     });
 
     gulp.task('serve', [ 'build' ], function() {
@@ -103,9 +103,9 @@
         });
     });
 
-    gulp.task('watch', [ 'build' ], function( done ) {
-        gulp.watch( paths.styles, [ 'build-styles' ] );
-        gulp.watch( paths.resources, [ 'copy-resources' ] );
+    gulp.task('watch', [ 'build' ], function(done) {
+        gulp.watch(paths.styles, [ 'build-styles' ]);
+        gulp.watch(paths.resources, [ 'copy-resources' ]);
         done();
     });
 

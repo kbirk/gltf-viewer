@@ -4,7 +4,7 @@
 
     var Node = require('../render/Node');
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         var camera;
         if (description.camera) {
             camera = gltf.cameras[description.camera].instance;
@@ -16,9 +16,9 @@
         var primitives;
         if (description.meshes) {
             primitives = [];
-            description.meshes.forEach( function( mesh ) {
-                gltf.meshes[ mesh ].primitives.forEach( function( primitive ) {
-                    primitives.push( primitive.instance );
+            description.meshes.forEach(function(mesh) {
+                gltf.meshes[ mesh ].primitives.forEach(function(primitive) {
+                    primitives.push(primitive.instance);
                 });
             });
         }
@@ -33,7 +33,7 @@
             jointName: description.jointName,
             primitives: primitives
         });
-        done( null );
+        done(null);
     };
 
 }());

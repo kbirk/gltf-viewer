@@ -6,10 +6,10 @@
     var IndexBuffer = require('../render/IndexBuffer');
     var Primitive = require('../render/Primitive');
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         var primitives = description.primitives;
-        primitives.forEach( function( primitive ) {
-            var vertices = Object.keys( primitive.attributes ).map( function(key) {
+        primitives.forEach(function(primitive) {
+            var vertices = Object.keys(primitive.attributes).map(function(key) {
                 return gltf.accessors[ primitive.attributes[key] ];
             });
             var material = gltf.materials[ primitive.material ];
@@ -19,7 +19,7 @@
             // mirror the correct attribute indices.
             var attributes = program.attributes;
             // create vertex buffers
-            var vertexBuffers = attributes.map( function( attribute, index ) {
+            var vertexBuffers = attributes.map(function(attribute, index) {
                 var accessor = vertices[index];
                 var bufferView = gltf.bufferViews[ accessor.bufferView ];
                 return new VertexBuffer({
@@ -50,7 +50,7 @@
                 technique: technique.instance
             });
         });
-        done( null );
+        done(null);
     };
 
 }());

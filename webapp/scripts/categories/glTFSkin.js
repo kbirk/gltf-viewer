@@ -22,36 +22,36 @@
         5126: Float32Array
     };
 
-    function getArrayBufferView( accessor, bufferView ) {
+    function getArrayBufferView(accessor, bufferView) {
         var numComponents = NUM_COMPONENTS[ accessor.type ];
         var TypedArray = COMPONENT_TYPES[ accessor.componentType ];
         return new TypedArray(
             bufferView.source,
             accessor.byteOffset,
-            accessor.count * numComponents );
+            accessor.count * numComponents);
     }
 
-    function getNodeByJointName( nodes, jointName ) {
-        var keys = Object.keys( nodes );
+    function getNodeByJointName(nodes, jointName) {
+        var keys = Object.keys(nodes);
         var node;
         var i;
-        for ( i=0; i<keys.length; i++ ) {
+        for (i=0; i<keys.length; i++) {
             node = nodes[ keys[i] ];
-            if ( node.jointName && node.jointName === jointName ) {
+            if (node.jointName && node.jointName === jointName) {
                 return node;
             }
         }
         return null;
     }
 
-    module.exports = function( gltf, description, done ) {
+    module.exports = function(gltf, description, done) {
         // get inverse bind arraybuffer
         var accessor = gltf.accessors[ description.inverseBindMatrices ];
         var bufferView = gltf.bufferViews[ accessor.bufferView ];
-        var inverseBindMatrices = getArrayBufferView( accessor, bufferView );
+        var inverseBindMatrices = getArrayBufferView(accessor, bufferView);
         // get joints
-        var joints = description.jointNames.map( function( jointName ) {
-            return getNodeByJointName( gltf.nodes, jointName ).instance;
+        var joints = description.jointNames.map(function(jointName) {
+            return getNodeByJointName(gltf.nodes, jointName).instance;
         });
         // create instance
         description.instance = new Skin({
@@ -60,7 +60,7 @@
             joints: joints,
             size: accessor.size
         });
-        done( null );
+        done(null);
     };
 
 }());

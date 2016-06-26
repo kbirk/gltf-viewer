@@ -37,40 +37,40 @@
         35680: 'uniform1i'
     };
 
-    function Shader( args ) {
+    function Shader(args) {
         // create vertex shader
         var gl = this.gl = context();
-        var vertexShader = gl.createShader( gl.VERTEX_SHADER );
-        gl.shaderSource( vertexShader, args.vertex );
-        gl.compileShader( vertexShader );
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, args.vertex);
+        gl.compileShader(vertexShader);
         // check for error
-        if ( !gl.getShaderParameter( vertexShader, gl.COMPILE_STATUS ) ) {
-            throw new Error( gl.getShaderInfoLog( vertexShader ) );
+        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(vertexShader));
         }
         // create fragment shader
-        var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
-        gl.shaderSource( fragmentShader, args.fragment );
-        gl.compileShader( fragmentShader );
+        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, args.fragment);
+        gl.compileShader(fragmentShader);
         // check for error
-        if ( !gl.getShaderParameter( fragmentShader, gl.COMPILE_STATUS ) ) {
-            throw new Error( gl.getShaderInfoLog( fragmentShader ) );
+        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(fragmentShader));
         }
         // create program
         var program = this.program = gl.createProgram();
         // attach vertex and fragment shaders
-        gl.attachShader( program, vertexShader );
-        gl.attachShader( program, fragmentShader );
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
         // bind vertex attribute locations BEFORE linking
         this.attributes = args.attributes;
-        this.attributes.forEach( function( attribute, index ) {
+        this.attributes.forEach(function(attribute, index) {
             // bind the attribute location
-            gl.bindAttribLocation( program, index, attribute );
+            gl.bindAttribLocation(program, index, attribute);
         });
         // link shader
-        gl.linkProgram( program );
+        gl.linkProgram(program);
         // check if  creating the shader program failed
-        if ( !gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
-            throw new Error( gl.getProgramInfoLog( program ) );
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            throw new Error(gl.getProgramInfoLog(program));
         }
         // uniforms map
         this.uniforms = {};
@@ -78,22 +78,22 @@
 
     Shader.prototype.use = function() {
         var gl = this.gl;
-        gl.useProgram( this.program );
+        gl.useProgram(this.program);
     };
 
-    Shader.prototype.setUniform = function( uniform, value ) {
+    Shader.prototype.setUniform = function(uniform, value) {
         var gl = this.gl;
         var name = uniform.name;
         var type = uniform.type;
-        if ( !this.uniforms[ name ] ) {
-            this.uniforms[ name ] = gl.getUniformLocation( this.program, name );
+        if (!this.uniforms[ name ]) {
+            this.uniforms[ name ] = gl.getUniformLocation(this.program, name);
         }
         var location = this.uniforms[ name ];
         var func = UNIFORM_FUNCTIONS[type];
-        if ( type === 35674 || type === 35675 || type === 35676 ) {
-            gl[ func ]( location, false, value );
+        if (type === 35674 || type === 35675 || type === 35676) {
+            gl[ func ](location, false, value);
         } else {
-            gl[ func ]( location, value );
+            gl[ func ](location, value);
         }
     };
 
