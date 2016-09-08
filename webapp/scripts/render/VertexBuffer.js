@@ -4,14 +4,6 @@
 
     let context = require('./gl');
 
-    let SIZE_BY_TYPE = {
-        5120: 1,
-        5121: 1,
-        5122: 2,
-        5123: 2,
-        5126: 4
-    };
-
     class VertexBuffer {
         constructor(args) {
             this.gl = context();
