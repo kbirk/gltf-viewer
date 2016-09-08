@@ -13,7 +13,7 @@
          * @param {Function} options.error - The error callback function.
          */
         load: function (options) {
-            var image = new Image();
+            let image = new Image();
             image.onload = function() {
                 if (options.success) {
                     options.success(image);
@@ -21,7 +21,7 @@
             };
             image.onerror = function(event) {
                 if (options.error) {
-                    var err = 'Unable to load image from URL: `' + event.path[0].currentSrc + '`';
+                    let err = 'Unable to load image from URL: `' + event.path[0].currentSrc + '`';
                     options.error(err);
                 }
             };

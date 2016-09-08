@@ -2,30 +2,30 @@
 
     'use strict';
 
-    var glm = require('gl-matrix');
-    var Stats = require('stats.js');
-    var context = require('./scripts/render/gl');
-    var glTFLoader = require('./scripts/glTFLoader');
-    var Debug = require('./scripts/render/Debug');
-    var XHRLoader = require('./scripts/util/XHRLoader');
+    let glm = require('gl-matrix');
+    let Stats = require('stats.js');
+    let context = require('./scripts/render/gl');
+    let glTFLoader = require('./scripts/glTFLoader');
+    let Debug = require('./scripts/render/Debug');
+    let XHRLoader = require('./scripts/util/XHRLoader');
 
-    var model;
-    var models;
+    let model;
+    let models;
 
-    var stats;
+    let stats;
 
-    var gl;
-    var origin = glm.mat4.create();
-    var scene;
-    var view;
-    var projection;
+    let gl;
+    let origin = glm.mat4.create();
+    let scene;
+    let view;
+    let projection;
 
-    var start = Date.now();
-    var time;
+    let start = Date.now();
+    let time;
 
     function renderPrimitive(node, primitive) {
-        var material = primitive.material;
-        var technique = primitive.technique;
+        let material = primitive.material;
+        let technique = primitive.technique;
         // enable state
         technique.enableState();
         // set uniforms
@@ -48,14 +48,12 @@
     // }
 
     function renderHierarchyBreadthFirst(node) {
-        var queue = [ node ];
-        var primitives;
-        var i;
+        let queue = [ node ];
         while (queue.length > 0) {
             node = queue.shift();
             if (node.primitives) {
-                primitives = node.primitives;
-                for (i=0; i<primitives.length; i++) {
+                let primitives = node.primitives;
+                for (let i=0; i<primitives.length; i++) {
                     renderPrimitive(node, primitives[i]);
                 }
             }
@@ -79,7 +77,7 @@
             // render origin
             Debug.renderNode(origin, view, projection);
             // render scene
-            scene.nodes.forEach(function(node) {
+            scene.nodes.forEach(node => {
                 renderHierarchy(node);
             });
             stats.end();
@@ -89,17 +87,18 @@
     }
 
     function resizeCanvas() {
-        var pixelRatio = window.devicePixelRatio;
-        var width = pixelRatio * window.innerWidth;
-        var height = pixelRatio * window.innerHeight;
+        let pixelRatio = window.devicePixelRatio;
+        let width = pixelRatio * window.innerWidth;
+        let height = pixelRatio * window.innerHeight;
         gl.canvas.width = width;
         gl.canvas.height = height;
         gl.viewport(0, 0, width, height);
     }
 
     function loadModel(path) {
+        console.log('Loading ' + path);
         // load and parse glTF model into runtime format
-        glTFLoader.load(path, function(err, gltf) {
+        glTFLoader.load(path, (err, gltf) => {
             if (err) {
                 console.error(err);
                 return;
@@ -113,8 +112,8 @@
     }
 
     function changeModel(event) {
-        var M_CODE = 109;
-        var modelIndex = models.indexOf(model);
+        let M_CODE = 109;
+        let modelIndex = models.indexOf(model);
         if (event.keyCode === M_CODE) {
             modelIndex = (modelIndex + 1) % models.length;
             // switch model
@@ -142,7 +141,7 @@
             XHRLoader.load({
                 url: 'models',
                 responseType: 'json',
-                success: function(res) {
+                success: res => {
                     if (res.length === 0) {
                         console.error('There are no models to render');
                         return;
@@ -158,7 +157,7 @@
                     // start rendering
                     render();
                 },
-                error: function(err) {
+                error: err => {
                     console.error(err);
                 }
             });

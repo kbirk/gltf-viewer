@@ -2,8 +2,8 @@
 
     'use strict';
 
-    var CANVAS_ID = 'glcanvas';
-    var EXTENSIONS = [
+    let CANVAS_ID = 'glcanvas';
+    let EXTENSIONS = [
         // ratified
         'OES_texture_float',
         'OES_texture_half_float',
@@ -32,17 +32,17 @@
         'WEBGL_compressed_texture_etc1'
     ];
 
-    var loaded = false;
-    var gl;
+    let loaded = false;
+    let gl;
 
     module.exports = function() {
         if (!loaded) {
             // get context
-            var canvas = document.getElementById(CANVAS_ID);
+            let canvas = document.getElementById(CANVAS_ID);
             gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             // load extensions
             if (gl) {
-                EXTENSIONS.forEach(function(ext) {
+                EXTENSIONS.forEach(ext => {
                     gl.getExtension(ext);
                 });
             }

@@ -2,10 +2,10 @@
 
     'use strict';
 
-    var Async = require('./util/Async');
-    var XHRLoader = require('./util/XHRLoader');
+    let Async = require('./util/Async');
+    let XHRLoader = require('./util/XHRLoader');
 
-    var CATEGORY_DEP_ORDER = [
+    let CATEGORY_DEP_ORDER = [
         [ 'extensions' ],
         [ 'buffers', 'shaders', 'images', 'samplers', 'cameras' ],
         [ 'bufferViews', 'textures', 'programs' ],
@@ -18,16 +18,16 @@
         [ 'scene' ]
     ];
 
-    var CATEGORIES_TO_RESOLVE = [
+    let CATEGORIES_TO_RESOLVE = [
         'buffers',
         'shaders',
         'images'
     ];
 
-    var DATA_URI_REGEX = new RegExp('^data:');
+    let DATA_URI_REGEX = new RegExp('^data:');
 
     function getBaseURL(path) {
-        var i = path.lastIndexOf('/');
+        let i = path.lastIndexOf('/');
         return path.substring(0, i + 1);
     }
 
@@ -39,11 +39,11 @@
     }
 
     function resolvePaths(json, baseURL) {
-        CATEGORIES_TO_RESOLVE.forEach(function(category) {
-            var descriptions = json[category];
+        CATEGORIES_TO_RESOLVE.forEach(category => {
+            let descriptions = json[category];
             if (descriptions) {
-                Object.keys(descriptions).forEach(function(key) {
-                    var description = descriptions[key];
+                Object.keys(descriptions).forEach(key => {
+                    let description = descriptions[key];
                     // resolve and replace uri
                     description.uri = resolvePath(baseURL, description.uri);
                 });
@@ -53,9 +53,9 @@
     }
 
     function getDependencyGroups(json) {
-        var groups = [];
-        CATEGORY_DEP_ORDER.forEach(function(group) {
-            var filtered = group.filter(function(categoryId) {
+        let groups = [];
+        CATEGORY_DEP_ORDER.forEach(group => {
+            let filtered = group.filter(categoryId => {
                 return (json[categoryId]) ? true : false;
             });
             if (filtered.length > 0) {
@@ -67,13 +67,13 @@
 
     function createParallelHandlers(json, categoryIds, handlers) {
         return function(done) {
-            var tasks = [];
-            categoryIds.forEach(function(categoryId) {
-                var handler = handlers[categoryId];
+            let tasks = [];
+            categoryIds.forEach(categoryId => {
+                let handler = handlers[categoryId];
                 if (handler) {
-                    var category = json[categoryId];
-                    Object.keys(category).map(function(key) {
-                        tasks.push(function(done) {
+                    let category = json[categoryId];
+                    Object.keys(category).map(key => {
+                        tasks.push(done => {
                             //console.log('Loading ' + categoryId + ': ' + key);
                             handler(json, category[key], done);
                         });
@@ -89,13 +89,13 @@
 
     function parseJSON(json, handlers) {
         // get the category IDs that are in the glTF blob
-        var groups = getDependencyGroups(json);
+        let groups = getDependencyGroups(json);
         // create batches for each dependency level
-        var batches = groups.map(function(categoryIds) {
+        let batches = groups.map(categoryIds => {
             // return a batch for each category dependency group
             return createParallelHandlers(json, categoryIds, handlers);
         });
-        Async.series(batches, function(err) {
+        Async.series(batches, err => {
             if (err) {
                 handlers.error(err);
             } else {
@@ -107,14 +107,14 @@
     module.exports = {
 
         load: function(path, handlers) {
-            var baseURL = getBaseURL(path);
+            let baseURL = getBaseURL(path);
             XHRLoader.load({
                 url: path,
                 responseType: 'json',
-                success: function(json) {
+                success: json => {
                     parseJSON(resolvePaths(json, baseURL), handlers);
                 },
-                error: function(err) {
+                error: err => {
                     handlers.error(err);
                 }
             });

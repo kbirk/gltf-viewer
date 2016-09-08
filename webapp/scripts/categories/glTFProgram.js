@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var Shader = require('../render/Shader');
+    let Shader = require('../render/Shader');
 
     module.exports = function(gltf, description, done) {
         // create instance

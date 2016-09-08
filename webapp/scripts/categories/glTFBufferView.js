@@ -2,11 +2,11 @@
 
     'use strict';
 
-    var context = require('../render/gl');
+    let context = require('../render/gl');
 
     module.exports = function(gltf, description, done) {
-        var gl = context();
-        var buffer = gltf.buffers[ description.buffer ].instance;
+        let gl = context();
+        let buffer = gltf.buffers[ description.buffer ].instance;
         description.source = buffer.slice(description.byteOffset, description.byteOffset + description.byteLength);
         if (description.target) {
             description.instance = gl.createBuffer();

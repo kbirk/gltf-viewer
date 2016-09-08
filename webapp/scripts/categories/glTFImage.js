@@ -2,17 +2,17 @@
 
     'use strict';
 
-    var ImageLoader = require('../util/ImageLoader');
+    let ImageLoader = require('../util/ImageLoader');
 
     module.exports = function(gltf, description, done) {
         // load image
         ImageLoader.load({
             url: description.uri,
-            success: function(image) {
+            success: image => {
                 description.image = image;
                 done(null);
             },
-            error: function(err) {
+            error: err => {
                 done(err);
             }
         });

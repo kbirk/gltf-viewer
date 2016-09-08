@@ -2,20 +2,19 @@
 
     'use strict';
 
-    var fs = require('fs');
-
-    var EXT = '.gltf';
+    const fs = require('fs');
+    const EXT = '.gltf';
 
     function get(dir, files_){
         files_ = files_ || [];
-        var files = fs.readdirSync(dir);
-        Object.keys(files).forEach(function(key) {
-            var file = files[ key ];
-            var name = dir + '/' + file;
+        let files = fs.readdirSync(dir);
+        Object.keys(files).forEach(key => {
+            let file = files[ key ];
+            let name = dir + '/' + file;
             if (fs.statSync(name).isDirectory()){
                 get(name, files_);
             } else {
-                var ext = file.substr(file.length - EXT.length);
+                let ext = file.substr(file.length - EXT.length);
                 if (ext === EXT) {
                     files_.push(name);
                 }
@@ -25,9 +24,7 @@
     }
 
     module.exports = {
-
         get: get
-
     };
 
 }());

@@ -2,23 +2,23 @@
 
     'use strict';
 
-    var glTFParser = require('./glTFParser');
-    var glTFAccessor = require('./categories/glTFAccessor');
-    var glTFAnimation = require('./categories/glTFAnimation');
-    var glTFBuffer = require('./categories/glTFBuffer');
-    var glTFBufferView = require('./categories/glTFBufferView');
-    var glTFCamera = require('./categories/glTFCamera');
-    var glTFImage = require('./categories/glTFImage');
-    var glTFMaterial = require('./categories/glTFMaterial');
-    var glTFMesh = require('./categories/glTFMesh');
-    var glTFNode = require('./categories/glTFNode');
-    var glTFProgram = require('./categories/glTFProgram');
-    var glTFSampler = require('./categories/glTFSampler');
-    var glTFScene = require('./categories/glTFScene');
-    var glTFShader = require('./categories/glTFShader');
-    var glTFSkin = require('./categories/glTFSkin');
-    var glTFTechnique = require('./categories/glTFTechnique');
-    var glTFTexture = require('./categories/glTFTexture');
+    let glTFParser = require('./glTFParser');
+    let glTFAccessor = require('./categories/glTFAccessor');
+    let glTFAnimation = require('./categories/glTFAnimation');
+    let glTFBuffer = require('./categories/glTFBuffer');
+    let glTFBufferView = require('./categories/glTFBufferView');
+    let glTFCamera = require('./categories/glTFCamera');
+    let glTFImage = require('./categories/glTFImage');
+    let glTFMaterial = require('./categories/glTFMaterial');
+    let glTFMesh = require('./categories/glTFMesh');
+    let glTFNode = require('./categories/glTFNode');
+    let glTFProgram = require('./categories/glTFProgram');
+    let glTFSampler = require('./categories/glTFSampler');
+    let glTFScene = require('./categories/glTFScene');
+    let glTFShader = require('./categories/glTFShader');
+    let glTFSkin = require('./categories/glTFSkin');
+    let glTFTechnique = require('./categories/glTFTechnique');
+    let glTFTexture = require('./categories/glTFTexture');
 
     module.exports = {
 
@@ -41,10 +41,10 @@
                 animations: glTFAnimation,
                 materials: glTFMaterial,
                 scenes: glTFScene,
-                success: function(gltf) {
+                success: gltf => {
                     callback(null, gltf);
                 },
-                error: function(err) {
+                error: err => {
                     callback(err);
                 }
             });

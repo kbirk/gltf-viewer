@@ -32,7 +32,7 @@
 
     function parallel(eachfn, tasks, callback) {
         callback = callback || noop;
-        var results = Array.isArray(tasks) ? [] : {};
+        let results = Array.isArray(tasks) ? [] : {};
         eachfn(tasks, function(task, key, callback) {
             task(function (err, res) {
                 results[key] = res;
@@ -54,9 +54,9 @@
     }
 
     function keyIterator(coll) {
-        var i = -1;
-        var len;
-        var keys;
+        let i = -1;
+        let len;
+        let keys;
         if (Array.isArray(coll)) {
             len = coll.length;
             return function next() {
@@ -73,8 +73,8 @@
         }
     }
 
-    var eachOf = function (object, iterator, callback) {
-        var key, completed = 0;
+    let eachOf = function (object, iterator, callback) {
+        let key, completed = 0;
 
         function done(err) {
             completed--;
@@ -90,7 +90,7 @@
 
         callback = once(callback || noop);
         object = object || [];
-        var iter = keyIterator(object);
+        let iter = keyIterator(object);
         while ((key = iter()) !== null) {
             completed += 1;
             iterator(object[key], key, once(done));
@@ -100,13 +100,13 @@
         }
     };
 
-    var eachOfSeries = function (obj, iterator, callback) {
+    let eachOfSeries = function (obj, iterator, callback) {
         callback = once(callback || noop);
         obj = obj || [];
-        var nextKey = keyIterator(obj);
-        var key = nextKey();
+        let nextKey = keyIterator(obj);
+        let key = nextKey();
         function iterate() {
-            var sync = true;
+            let sync = true;
             if (key === null) {
                 return callback(null);
             }

@@ -2,8 +2,10 @@
 
     'use strict';
 
-    function Material(args) {
-        this.values = args.values;
+    class Material {
+        constructor(args) {
+            this.values = args.values;
+        }
     }
 
     module.exports = Material;

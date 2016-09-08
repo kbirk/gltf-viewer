@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var NUM_COMPONENTS = {
+    let NUM_COMPONENTS = {
         'SCALAR': 1,
         'VEC2': 2,
         'VEC3': 3,

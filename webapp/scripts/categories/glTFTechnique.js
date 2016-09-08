@@ -2,15 +2,15 @@
 
     'use strict';
 
-    var Technique = require('../render/Technique');
+    let Technique = require('../render/Technique');
 
     module.exports = function(gltf, description, done) {
         // get shader instance
-        var shader = gltf.programs[ description.program ].instance;
+        let shader = gltf.programs[ description.program ].instance;
         // convert uniforms to array of the values
-        var uniforms = Object.keys(description.uniforms).map(function(name) {
-            var id = description.uniforms[ name ];
-            var parameter = description.parameters[ id ];
+        let uniforms = Object.keys(description.uniforms).map(name => {
+            let id = description.uniforms[ name ];
+            let parameter = description.parameters[ id ];
             parameter.name = name;
             parameter.id = id;
             if (Array.isArray(parameter.value)) {
@@ -19,10 +19,10 @@
             return parameter;
         });
         // convert state function to array
-        var functions;
+        let functions;
         if (description.states.functions) {
-            functions = Object.keys(description.states.functions).map(function(key) {
-                var values = description.states.functions[ key ];
+            functions = Object.keys(description.states.functions).map(key => {
+                let values = description.states.functions[ key ];
                 return {
                     name: key,
                     values: Array.isArray(values) ? values : [ values ]

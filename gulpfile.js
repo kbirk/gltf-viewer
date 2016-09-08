@@ -2,21 +2,22 @@
 
     'use strict';
 
-    var gulp = require('gulp');
-    var watchify = require('watchify');
-    var concat = require('gulp-concat');
-    var source = require('vinyl-source-stream');
-    var del = require('del');
-    var jshint = require('gulp-jshint');
-    var browserify = require('browserify');
-    var csso = require('gulp-csso');
-    var runSequence = require('run-sequence');
-    var merge = require('merge-stream');
-    var nodemon = require('gulp-nodemon');
+    let gulp = require('gulp');
+    let watchify = require('watchify');
+    let concat = require('gulp-concat');
+    let source = require('vinyl-source-stream');
+    let del = require('del');
+    let jshint = require('gulp-jshint');
+    let browserify = require('browserify');
+    let csso = require('gulp-csso');
+    let runSequence = require('run-sequence');
+    let merge = require('merge-stream');
+    let nodemon = require('gulp-nodemon');
+    let babel = require('babelify');
 
-    var project = 'gltf-viewer';
-    var basePath = 'webapp/';
-    var paths = {
+    let project = 'gltf-viewer';
+    let basePath = 'webapp/';
+    let paths = {
         root: basePath + 'app.js',
         scripts: [ basePath + 'scripts/**/*.js', basePath + 'app.js' ],
         styles: [ basePath + 'styles/**/*.css' ],
@@ -34,17 +35,17 @@
     }
 
     function bundle(bundler) {
-        var watcher = watchify(bundler);
+        let watcher = watchify(bundler);
         return watcher
             .on('update', function(files) {
                 // When any files updates
                 console.log('\nWatch detected changes to [', files.join(', '), ']');
                 // lint changed files
-                var linting = gulp.src(files)
+                let linting = gulp.src(files)
                     .pipe(jshint('.jshintrc'))
                     .pipe(jshint.reporter('jshint-stylish'));
                 // re-bundle
-                var bundling = watcher.bundle()
+                let bundling = watcher.bundle()
                     .on('error', handleError)
                     .pipe(source(project + '.js'))
                     .pipe(gulp.dest(paths.build));
@@ -68,9 +69,11 @@
     });
 
     gulp.task('build-scripts', function() {
-        var bundler = browserify(paths.root, {
+        let bundler = browserify(paths.root, {
             debug: true,
             standalone: project
+        }).transform(babel, {
+            presets: [ 'es2015' ]
         });
         return bundle(bundler);
     });

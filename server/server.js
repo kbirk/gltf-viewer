@@ -2,30 +2,33 @@
 
     'use strict';
 
-    var path = require('path');
-    var express = require('express');
-    var compression = require('compression');
-    var bodyParser = require('body-parser');
-    var models = require('./routes/models');
-    var app = express();
+    let path = require('path');
+    let express = require('express');
+    let compression = require('compression');
+    let bodyParser = require('body-parser');
+    let models = require('./routes/models');
+    let app = express();
 
-    var HTTP_PORT = 8080;
-    var APP_DIR = path.normalize(__dirname + '/../build');
+    const HTTP_PORT = 8080;
+    const APP_DIR = path.normalize(__dirname + '/../build');
 
-    app.use(bodyParser.json()); // support JSON-encoded bodies
-    app.use(bodyParser.urlencoded({ extended: false })); // support URL-encoded bodies
+    // support JSON-encoded bodies
+    app.use(bodyParser.json());
+    // support URL-encoded bodies
+    app.use(bodyParser.urlencoded({ extended: false }));
+    // use compression
     app.use(compression());
     app.use(express.static(APP_DIR));
 
-    app.get('/models', function(req, res) {
-        var PREFIX = 'build/';
-        var paths =  models.get('build/models').map(function(path) {
+    app.get('/models', (req, res) => {
+        const PREFIX = 'build/';
+        let paths =  models.get('build/models').map(path => {
             return path.replace(PREFIX, '');
         });
         res.send(paths);
     });
 
-    app.listen(HTTP_PORT, function() {
+    app.listen(HTTP_PORT, () => {
         console.log('Listening on port %d', HTTP_PORT);
     });
 

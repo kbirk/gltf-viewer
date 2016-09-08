@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var Texture = require('../render/Texture');
+    let Texture = require('../render/Texture');
 
     module.exports = function(gltf, description, done) {
         // create instance

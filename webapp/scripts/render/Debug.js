@@ -2,40 +2,40 @@
 
     'use strict';
 
-    var context = require('./gl');
-    var Shader = require('./Shader');
-    var VertexBuffer = require('./VertexBuffer');
+    let context = require('./gl');
+    let Shader = require('./Shader');
+    let VertexBuffer = require('./VertexBuffer');
 
-    var shader;
-    var x;
-    var y;
-    var z;
-    var red = new Float32Array([ 1, 0, 0 ]);
-    var green = new Float32Array([ 0, 1, 0 ]);
-    var blue = new Float32Array([ 0, 0, 1 ]);
+    let shader;
+    let x;
+    let y;
+    let z;
+    let red = new Float32Array([ 1, 0, 0 ]);
+    let green = new Float32Array([ 0, 1, 0 ]);
+    let blue = new Float32Array([ 0, 0, 1 ]);
 
-    var uModelMatrix = {
+    let uModelMatrix = {
         type: 35676,
         name: 'uModelMatrix'
     };
-    var uViewMatrix = {
+    let uViewMatrix = {
         type: 35676,
         name: 'uViewMatrix'
     };
-    var uProjectionMatrix = {
+    let uProjectionMatrix = {
         type: 35676,
         name: 'uProjectionMatrix'
     };
-    var uColor = {
+    let uColor = {
         type: 35665,
         name: 'uColor'
     };
 
-    var initialized = false;
+    let initialized = false;
 
     function initVertexBuffer(data) {
-        var gl = context();
-        var buffer = gl.createBuffer();
+        let gl = context();
+        let buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         return new VertexBuffer({
@@ -51,22 +51,24 @@
     }
 
     function initShader() {
-        var vert = [
-            'attribute highp vec3 aVertexPosition;',
-            'uniform highp mat4 uModelMatrix;',
-            'uniform highp mat4 uViewMatrix;',
-            'uniform highp mat4 uProjectionMatrix;',
-            'void main() {',
-                'gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPosition, 1.0);',
-            '}'
-        ].join('\n');
-        var frag = [
-            'uniform highp vec3 uColor;',
-            'void main() {',
-                'gl_FragColor = vec4(uColor, 1.0);',
-            '}'
-        ].join('\n');
-        var attributes = [
+        let vert =
+            `
+            attribute highp vec3 aVertexPosition;
+            uniform highp mat4 uModelMatrix;
+            uniform highp mat4 uViewMatrix;
+            uniform highp mat4 uProjectionMatrix;
+            void main() {
+                gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPosition, 1.0);
+            }
+            `;
+        let frag =
+            `
+            uniform highp vec3 uColor;
+            void main() {
+                gl_FragColor = vec4(uColor, 1.0);
+            }
+            `;
+        let attributes = [
             'aVertexPosition'
         ];
         return new Shader({

@@ -2,22 +2,22 @@
 
     'use strict';
 
-    var Node = require('../render/Node');
+    let Node = require('../render/Node');
 
     module.exports = function(gltf, description, done) {
-        var camera;
+        let camera;
         if (description.camera) {
             camera = gltf.cameras[description.camera].instance;
         }
-        var skin;
+        let skin;
         if (description.skin) {
             skin = gltf.skins[description.skin].instance;
         }
-        var primitives;
+        let primitives;
         if (description.meshes) {
             primitives = [];
-            description.meshes.forEach(function(mesh) {
-                gltf.meshes[ mesh ].primitives.forEach(function(primitive) {
+            description.meshes.forEach(mesh => {
+                gltf.meshes[ mesh ].primitives.forEach(primitive => {
                     primitives.push(primitive.instance);
                 });
             });
