@@ -1,6 +1,6 @@
 # gltf-viewer
 
-A minimalistic importer and renderer for the [Khronos glTF 1.0 format](https://github.com/KhronosGroup/glTF).
+A minimalistic ES6 importer and renderer for the [Khronos glTF 1.0 format](https://github.com/KhronosGroup/glTF).
 
 ## Motivation
 
@@ -30,27 +30,16 @@ Set your browser to `http://localhost:8080`. The application will serve any glTF
 
 ## Known Issues
 
-- `boxSemantics.gltf` sample model
-
-    - `modelInverseTransposeMatrix` uniform is of type `MODELINVERSETRANSPOSE` which should have corresponding type of `FLOAT_MAT3`, however type is `FLOAT_MAT4`
-        - Not sure if model error or implementation error
-        - Referenced in [Issue #556](https://github.com/KhronosGroup/glTF/issues/556)
-    - `VIEWPORT` uniform semantic has no corresponding value `VEC4`
-        - Not sure if model error or implementation error
-
-
 - `box-animated.gltf` sample model
 
     - Animation `TIME` input has different number of elements across `translation` and `rotation` paths and causes animation delay
         - Not sure if model error or implementation error
         - Referenced in [Issue #574](https://github.com/KhronosGroup/glTF/issues/573) and [Issue #569](https://github.com/KhronosGroup/glTF/issues/569)
 
-
 - `monster.gltf` sample model
 
     - scale does not seem right, abnormally large compared to other sample models
         - Not sure if model error or implementation error
-
 
 - `vc.gltf` sample model
 
